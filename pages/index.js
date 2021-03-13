@@ -206,7 +206,7 @@ class Index extends React.Component {
           Test getQueue
         </Button>
         <Queue 
-        queue={ queue }
+        queue={ this.state.queue }
         onSort={ this.sortQueue }/>
         <Login 
           loggedIn={ this.state.loggedIn } 
