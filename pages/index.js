@@ -3,9 +3,9 @@ import React from 'react';
 import Button from 'react-bootstrap/Button';
 import Image from 'react-bootstrap/Image';
 
-import Login from './components/login';
-import Nav from './components/nav';
-import Queue from './components/queue';
+import Login from '../components/login';
+import Nav from '../components/nav';
+import Queue from '../components/queue';
 
 import Head from 'next/head'
 
@@ -190,7 +190,7 @@ class Index extends React.Component {
   }
 
   render() {
-    const { queue = [] } = this.state.queue;
+    // const { queue = [] } = this.state.queue;
     return(
       <React.Fragment>
         <Head>
