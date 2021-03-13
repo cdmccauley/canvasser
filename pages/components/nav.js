@@ -6,6 +6,10 @@ import { PersonCircle } from 'react-bootstrap-icons'
 
 export default class Nav extends React.Component {
 
+  constructor(props) {
+    super(props);
+  }
+
   render() {
     return(
       <Navbar bg="secondary" variant="dark">
