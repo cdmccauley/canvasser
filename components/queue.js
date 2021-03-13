@@ -6,7 +6,6 @@ export default class Queue extends React.Component {
 
   constructor(props) {
     super(props);
-    this.props = props;
   }
 
   getTr = (submission) => {

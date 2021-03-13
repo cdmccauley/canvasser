@@ -23,7 +23,7 @@ class Index extends React.Component {
     this.state = {
       loggedIn: false,
       canvasUser: {
-        name: '...',
+        name: '',
         avatar_url: '',
       },
       sort: {
@@ -58,8 +58,13 @@ class Index extends React.Component {
   toggleLogin = () => {
     this.setState((state) => ({
       loggedIn: false,
+      canvasUser: {
+        name: '',
+        avatar_url: '',
+      },
       canvasUrl: '',
-      apiKey: ''
+      apiKey: '',
+      queue: []
     }));
   }
 
@@ -190,21 +195,15 @@ class Index extends React.Component {
   }
 
   render() {
-    // const { queue = [] } = this.state.queue;
     return(
       <React.Fragment>
         <Head>
           <title>Canvasser</title>
         </Head>
-        <Nav />
-        <Image src={ this.state.canvasUser.avatar_url } roundedCircle />
-        <p>{ this.state.loggedIn ? `Logged in as ${this.state.canvasUser.name}` : "Logged out" }</p>
-        <Button onClick={ this.toggleLogin }>
-          { this.state.loggedIn ? "Logout" : "Login" }
-        </Button>
-        <Button onClick={ this.getQueue }>
-          Test getQueue
-        </Button>
+        <Nav 
+          loggedIn={ this.state.loggedIn }
+          avatarUrl={ this.state.canvasUser.avatar_url }
+          onLoginToggle={ this.toggleLogin }/>
         <Queue 
         queue={ this.state.queue }
         onSort={ this.sortQueue }/>
