@@ -190,6 +190,7 @@ class Index extends React.Component {
   }
 
   render() {
+    const { queue = [] } = this.state.queue;
     return(
       <React.Fragment>
         <Head>
@@ -205,7 +206,7 @@ class Index extends React.Component {
           Test getQueue
         </Button>
         <Queue 
-        queue={ this.state.queue }
+        queue={ queue }
         onSort={ this.sortQueue }/>
         <Login 
           loggedIn={ this.state.loggedIn } 
