@@ -9,12 +9,13 @@ export default class Queue extends React.Component {
   }
 
   getTr = (submission) => {
+    let bg = submission.priority == 1 ? {backgroundColor: '#7c2020'} : {};
     return(
-      <tr key={ submission.id }>
+      <tr style={bg} key={ submission.id }>
         <td>{ submission.priority }</td>
-        <td>{ submission.submittedAt.toLocaleString() }</td>
+        <td style={{minWidth: '185px'}}>{ submission.submittedAt.toLocaleString() }</td>
         <td><a href={ submission.courseUrl } target='_blank'>{ submission.courseName }</a></td>
-        <td><a href={ submission.url } target='popup'>{ submission.name }</a></td>
+        <td><a href={ submission.url } target='_blank'>{ submission.name }</a></td>
       </tr>
     )
   }
@@ -22,7 +23,7 @@ export default class Queue extends React.Component {
   render() {
     return(
       <React.Fragment>
-        <Table striped bordered hover size="sm">
+        <Table variant='dark' striped bordered hover responsive>
           <thead>
             <tr>
               <th>Priority</th>
@@ -38,5 +39,4 @@ export default class Queue extends React.Component {
       </React.Fragment>
     )
   }
-
 }

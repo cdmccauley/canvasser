@@ -1,15 +1,17 @@
 import React from 'react';
 
-import Button from 'react-bootstrap/Button';
-import Image from 'react-bootstrap/Image';
+import Container from 'react-bootstrap/Container';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
 
 import Login from '../components/login';
 import Nav from '../components/nav';
+import Filters from '../components/filters';
 import Queue from '../components/queue';
 
 import Head from 'next/head'
 
-import "bootswatch/dist/darkly/bootstrap.min.css";
+import "bootswatch/dist/slate/bootstrap.min.css";
 
 export default function HomePage() {
   return <Index />;
@@ -204,9 +206,20 @@ class Index extends React.Component {
           loggedIn={ this.state.loggedIn }
           avatarUrl={ this.state.canvasUser.avatar_url }
           onLoginToggle={ this.toggleLogin }/>
-        <Queue 
-        queue={ this.state.queue }
-        onSort={ this.sortQueue }/>
+        <Container fluid='lg'>
+          <Row>
+            <Col>
+              <Filters />
+            </Col>
+          </Row>
+          <Row>
+            <Col>
+            <Queue 
+              queue={ this.state.queue }
+              onSort={ this.sortQueue }/>
+            </Col>
+          </Row>
+        </Container>
         <Login 
           loggedIn={ this.state.loggedIn } 
           onLoginSubmit={ this.saveLoginInfo }/>
