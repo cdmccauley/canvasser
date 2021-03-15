@@ -40,7 +40,7 @@ export default class Filters extends React.Component {
     this.props.onFilterQueue(ReactDOM.findDOMNode(this.refs.courseFilter).value);
   }
 
-  // TODO: create state variable that will toggle caret
+  // TODO: set statuses, getting courses, getting submissions, num of submissions
   render() {
     return(
         <Accordion className="mb-3 mt-3">

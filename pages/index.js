@@ -105,9 +105,10 @@ class Index extends React.Component {
     updatedQueue.sort((a, b) => a.priority - b.priority)
     this.setState((state) => ({
       queue: updatedQueue
-    }))
+    }), this.setFilteredQueue )
   }
 
+  // TODO: clear browser storage
   toggleLogin = () => {
     this.setState((state) => ({
       loggedIn: false,
