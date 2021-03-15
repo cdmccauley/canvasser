@@ -65,7 +65,7 @@ export default class Queue extends React.Component {
     let bg = submission.priority == 1 ? {backgroundColor: '#7c2020'} : {};
     return(
       <tr style={bg} key={ submission.id }>
-        <td id={ submission.id } style={{zIndex: 2, position: 'relative', backgroundColor: 'transparent'}} className={`text-center ${submission.status}`} 
+        <td id={ submission.id } className={`text-center ${submission.status}`} 
           onMouseEnter={ (e) => this.handleEnter(e.target.id, e.target.classList) }
           onMouseLeave={ (e) => this.handleLeave(e.target.id, e.target.classList) }
           onMouseDownCapture={ (e) => this.handleClick(e.currentTarget.id, e.currentTarget.classList) } >

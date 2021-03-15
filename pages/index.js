@@ -38,17 +38,34 @@ class Index extends React.Component {
         ['pacific', ' ace ']
       ],
       viewOptions: false,
+      selfReserved: [],
+      otherReserved: [],
     }
   }
 
   setStatus = (id, status) => {
     let index = this.state.queue.indexOf(this.state.queue.find((subId) => subId.id.toString() == id))
     if (index > -1) {
-      let newQueue = this.state.queue;
-      newQueue[index].status = status;
-      this.setState((state) => ({
-        queue: newQueue
-      }))
+      let updatedQueue = this.state.queue;
+      updatedQueue[index].status = status;
+      if (status == 'self-reserved') {
+        this.setState((state) => ({
+          queue: updatedQueue,
+          selfReserved: [ ...this.state.selfReserved, id ]
+        }))
+      } else {
+        if (this.state.selfReserved.includes(id)) {
+          let updatedReserved = this.state.selfReserved.filter((resId) => resId != id)
+          this.setState((state) => ({
+            selfReserved: updatedReserved,
+            queue: updatedQueue
+          }))
+        } else {
+          this.setState((state) => ({
+            queue: updatedQueue
+          }))
+        }
+      }
     } else {
       console.log(id, 'not found')
     }
@@ -61,19 +78,19 @@ class Index extends React.Component {
   }
 
   sortQueue = () => {
-    let newQueue = this.state.queue;
+    let updatedQueue = this.state.queue;
     switch(this.state.sort.field) {
       case 'submitted':
         if (this.state.sort.type === 'asc') {
-          newQueue.sort((a, b) => a.submittedAt - b.submittedAt)
+          updatedQueue.sort((a, b) => a.submittedAt - b.submittedAt)
         } else {
-          newQueue.sort((a, b) => b.submittedAt - a.submittedAt)
+          updatedQueue.sort((a, b) => b.submittedAt - a.submittedAt)
         }
         break;
     }
-    newQueue.sort((a, b) => a.priority - b.priority)
+    updatedQueue.sort((a, b) => a.priority - b.priority)
     this.setState((state) => ({
-      queue: newQueue
+      queue: updatedQueue
     }))
   }
 
@@ -174,6 +191,16 @@ class Index extends React.Component {
     }
   }
 
+  setSelfReserved = (submissions) => {
+    submissions.forEach((submission) => {
+      this.state.selfReserved.forEach((id) => {
+        if (submission.id == id) {
+          submission.status = 'self-reserved'
+        }
+      })
+    })
+  }
+
   setSubPriorities = (submissions) => {
     let userPriority;
     submissions.forEach((submission) => {
@@ -205,6 +232,7 @@ class Index extends React.Component {
     console.log('getting queue')
     this.callQueue(this.state.courses, (data) => {
       this.setSubPriorities(data)
+      this.setSelfReserved(data)
       this.setSubDates(data)
       this.setState((state) => ({
         queue: data
