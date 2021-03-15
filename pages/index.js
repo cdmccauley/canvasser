@@ -37,7 +37,27 @@ class Index extends React.Component {
         ['meeting', 'cisco', 'course completion'],
         ['pacific', ' ace ']
       ],
+      viewOptions: false,
     }
+  }
+
+  setStatus = (id, status) => {
+    let index = this.state.queue.indexOf(this.state.queue.find((subId) => subId.id.toString() == id))
+    if (index > -1) {
+      let newQueue = this.state.queue;
+      newQueue[index].status = status;
+      this.setState((state) => ({
+        queue: newQueue
+      }))
+    } else {
+      console.log(id, 'not found')
+    }
+  }
+
+  toggleOptions = () => {
+    this.setState((state) => ({
+      viewOptions: !this.state.viewOptions
+    }))
   }
 
   sortQueue = () => {
@@ -209,14 +229,17 @@ class Index extends React.Component {
         <Container fluid='lg'>
           <Row>
             <Col>
-              <Filters />
+              <Filters 
+                viewOptions={ this.state.viewOptions }
+                onOptionsToggle={ this.toggleOptions }/>
             </Col>
           </Row>
           <Row>
             <Col>
             <Queue 
               queue={ this.state.queue }
-              onSort={ this.sortQueue }/>
+              onSort={ this.sortQueue }
+              onSetStatus={ this.setStatus }/>
             </Col>
           </Row>
         </Container>

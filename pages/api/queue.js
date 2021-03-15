@@ -23,7 +23,8 @@ export default function handler(req, res) {
               id: submission.id,
               submittedAt: submission.submitted_at,
               url: `${req.body.url}/courses/${submission.assignment.course_id}/gradebook/speed_grader?assignment_id=${submission.assignment_id}&student_id=${submission.user_id}`,
-              userId: submission.user_id
+              userId: submission.user_id,
+              status: 'unreserved'
             })
           })
         }

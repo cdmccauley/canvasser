@@ -8,7 +8,7 @@ import Col from 'react-bootstrap/Col';
 import InputGroup from 'react-bootstrap/InputGroup';
 import FormControl from 'react-bootstrap/FormControl';
 
-import { CaretDownFill } from 'react-bootstrap-icons';
+import { CaretDownFill, CaretUpFill } from 'react-bootstrap-icons';
 
 import { useAccordionToggle } from 'react-bootstrap/AccordionToggle';
 
@@ -24,6 +24,7 @@ function CustomToggle ({ children, eventKey }) {
             style={{backgroundColor: '#32363b'}}
             onClick={decoratedOnClick}>
             { children }
+            
         </Card.Header>
     );
 }
@@ -41,9 +42,14 @@ export default class Filters extends React.Component {
             <Card text='white' bg='dark'>
                 <CustomToggle eventKey="0">
                     <Container fluid='lg'>
-                        <Row>
-                            <Col>Filtering: </Col>
-                            <Col xl={2} className='text-right'>Options<CaretDownFill className='ml-2'/></Col>
+                        <Row onClick={ () => this.props.onOptionsToggle() }>
+                            <Col>
+                                Filtering:
+                            </Col>
+                            <Col className='text-right'>
+                                Options
+                                { this.props.viewOptions ? <CaretUpFill className='ml-2' /> : <CaretDownFill className='ml-2' /> }
+                            </Col>
                         </Row>
                     </Container>
                 </CustomToggle>
