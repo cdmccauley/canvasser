@@ -105,7 +105,7 @@ class Index extends React.Component {
     updatedQueue.sort((a, b) => a.priority - b.priority)
     this.setState((state) => ({
       queue: updatedQueue
-    }), this.setFilteredQueue )
+    }), this.setFilteredQueue(this.state.courseFilter) )
   }
 
   // TODO: clear browser storage
