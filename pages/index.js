@@ -33,6 +33,7 @@ class Index extends React.Component {
         type: 'asc'
       },
       queue: [],
+      filteredQueue: [],
       priorities: [
         ['meeting', 'cisco', 'course completion'],
         ['pacific', ' ace ']
@@ -40,9 +41,12 @@ class Index extends React.Component {
       viewOptions: false,
       selfReserved: [],
       otherReserved: [],
+      courseFilter: '',
+
     }
   }
 
+  // TODO: need to set status on filtered queue too
   setStatus = (id, status) => {
     let index = this.state.queue.indexOf(this.state.queue.find((subId) => subId.id.toString() == id))
     if (index > -1) {
@@ -52,23 +56,33 @@ class Index extends React.Component {
         this.setState((state) => ({
           queue: updatedQueue,
           selfReserved: [ ...this.state.selfReserved, id ]
-        }))
+        }), this.setFilteredQueue(this.state.courseFilter) )
       } else {
         if (this.state.selfReserved.includes(id)) {
           let updatedReserved = this.state.selfReserved.filter((resId) => resId != id)
           this.setState((state) => ({
             selfReserved: updatedReserved,
             queue: updatedQueue
-          }))
+          }), this.setFilteredQueue(this.state.courseFilter) )
         } else {
           this.setState((state) => ({
             queue: updatedQueue
-          }))
+          }), this.setFilteredQueue(this.state.courseFilter) )
         }
       }
     } else {
       console.log(id, 'not found')
     }
+  }
+
+  // TODO: right now will set course filter, 
+  // going forward could have type parameter for course, priority, status, assignment...
+  setFilteredQueue = (filter) => {
+    let updatedQueue = this.state.queue.filter((submission) => submission.courseName.toLowerCase().includes(filter.toLowerCase()))
+    this.setState((state) => ({
+      courseFilter: filter,
+      filteredQueue: updatedQueue
+    }))
   }
 
   toggleOptions = () => {
@@ -259,13 +273,14 @@ class Index extends React.Component {
             <Col>
               <Filters 
                 viewOptions={ this.state.viewOptions }
-                onOptionsToggle={ this.toggleOptions }/>
+                onOptionsToggle={ this.toggleOptions }
+                onFilterQueue={ this.setFilteredQueue }/>
             </Col>
           </Row>
           <Row>
             <Col>
             <Queue 
-              queue={ this.state.queue }
+              queue={ this.state.courseFilter == '' ? this.state.queue : this.state.filteredQueue }
               onSort={ this.sortQueue }
               onSetStatus={ this.setStatus }/>
             </Col>

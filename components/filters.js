@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
 
 import Accordion from 'react-bootstrap/Accordion';
 import Card from 'react-bootstrap/Card';
@@ -35,6 +36,10 @@ export default class Filters extends React.Component {
     super(props);
   }
 
+  handleCourseFilter = () => {
+    this.props.onFilterQueue(ReactDOM.findDOMNode(this.refs.courseFilter).value);
+  }
+
   // TODO: create state variable that will toggle caret
   render() {
     return(
@@ -60,7 +65,9 @@ export default class Filters extends React.Component {
                                 <Col>
                                     <label>Filter Course Name</label>
                                     <InputGroup size='sm'>
-                                        <FormControl />
+                                        <FormControl
+                                            ref='courseFilter'
+                                            onChange={ this.handleCourseFilter } />
                                     </InputGroup>
                                 </Col>
                                 <Col>
