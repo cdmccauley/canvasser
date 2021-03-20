@@ -29,6 +29,7 @@ class Index extends React.Component {
         name: '',
         avatar_url: '',
       },
+      refresh: 60,
       sort: {
         field: 'submitted',
         type: 'asc'
@@ -278,7 +279,7 @@ class Index extends React.Component {
 
   startQueueRefresh = () => {
     this.getQueue();
-    setInterval(() => this.getQueue() , 15000);
+    setInterval(() => this.getQueue() , this.state.refresh * 1000);
   }
 
   //TODO: validate courses prior to accessing
