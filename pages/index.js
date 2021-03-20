@@ -29,6 +29,7 @@ class Index extends React.Component {
         name: '',
         avatar_url: '',
       },
+      autoRefresh: true,
       refresh: 60,
       refreshInterval: null,
       sort: {
@@ -287,11 +288,13 @@ class Index extends React.Component {
   startQueueRefresh = () => {
     if (this.state.refreshInterval != null) {
       clearInterval(this.state.refreshInterval)
+      console.log('cleared last refresh')
     }
     // this.getQueue();
     this.setState((state) => ({
+      autoRefresh: true,
       refreshInterval: setInterval(() => this.getQueue() , state.refresh * 1000)
-    }))
+    }), () => console.log('started refresh'))
   }
 
   //TODO: validate courses prior to accessing
@@ -311,10 +314,27 @@ class Index extends React.Component {
 
   setRefreshRate = (rate) => {
     let validatedRate = Number.isNaN(Number(rate)) || Number(rate) < 1 ? this.state.refresh : Number(rate)
-    // cut last refresh timer, start new timer
     this.setState((state) => ({
       refresh: validatedRate
-    }), this.startQueueRefresh )
+    }), () => {
+      if (this.state.autoRefresh) {
+        this.startQueueRefresh()
+      }
+    })
+  }
+
+  toggleRefresh = (setting) => {
+    console.log('index.js, toggleRefresh: ', setting)
+    if (setting) {
+      this.getQueue()
+      this.startQueueRefresh()
+    } else {
+      clearInterval(this.state.refreshInterval)
+      this.setState((state) => ({
+        refreshInterval: null,
+        autoRefresh: false
+      }), () => console.log('stopped refresh'))
+    }
   }
 
   componentDidMount() {
@@ -335,11 +355,13 @@ class Index extends React.Component {
           <Row>
             <Col>
               <Filters 
+                autoRefresh={ this.state.autoRefresh }
                 refreshValue={ this.state.refresh }
                 viewOptions={ this.state.viewOptions }
                 onOptionsToggle={ this.toggleOptions }
                 onFilterQueue={ this.setFilteredQueue }
-                onRefreshChange={ this.setRefreshRate }/>
+                onRefreshChange={ this.setRefreshRate }
+                onRefreshCheckedChange={ this.toggleRefresh } />
             </Col>
           </Row>
           <Row>

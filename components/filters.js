@@ -36,12 +36,21 @@ export default class Filters extends React.Component {
     super(props);
   }
 
-  handleCourseFilter = () => {
-    this.props.onFilterQueue(ReactDOM.findDOMNode(this.refs.courseFilter).value);
+  handleCourseFilter = (e) => {
+    // console.log('filters.js, handleCourseFilter e: ', e.target.value)
+    // this.props.onFilterQueue(ReactDOM.findDOMNode(this.refs.courseFilter).value);
+    this.props.onFilterQueue(e.target.value);
   }
 
-  handleRefreshChange = () => {
-      this.props.onRefreshChange(ReactDOM.findDOMNode(this.refs.refreshInput).value);
+  handleRefreshChange = (e) => {
+    // console.log('filters.js, handleRefreshChange e: ', e.target.value)
+    // this.props.onRefreshChange(ReactDOM.findDOMNode(this.refs.refreshInput).value);
+    this.props.onRefreshChange(e.target.value);
+  }
+
+  handleRefreshCheckedChange = (e) => {
+    // console.log('filters.js, handleRefreshCheckedChange e: ', e.target.checked)
+    this.props.onRefreshCheckedChange(e.target.checked);
   }
 
   // TODO: set statuses for getting courses, getting submissions, num of submissions
@@ -53,7 +62,7 @@ export default class Filters extends React.Component {
                     <Container fluid='lg'>
                         <Row onClick={ () => this.props.onOptionsToggle() }>
                             <Col>
-                                Filtering:
+                                {/* Filtering:*/}
                             </Col>
                             <Col className='text-right'>
                                 Options
@@ -78,7 +87,9 @@ export default class Filters extends React.Component {
                                     <label>Auto-Refresh</label>
                                     <InputGroup size='sm'>
                                         <InputGroup.Prepend>
-                                            <InputGroup.Checkbox checked />
+                                            <InputGroup.Checkbox 
+                                                checked={ this.props.autoRefresh }
+                                                onChange={ this.handleRefreshCheckedChange }/>
                                         </InputGroup.Prepend>
                                         <FormControl 
                                             placeholder={ this.props.refreshValue } 
