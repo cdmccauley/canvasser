@@ -40,6 +40,10 @@ export default class Filters extends React.Component {
     this.props.onFilterQueue(ReactDOM.findDOMNode(this.refs.courseFilter).value);
   }
 
+  handleRefreshChange = () => {
+      this.props.onRefreshChange(ReactDOM.findDOMNode(this.refs.refreshInput).value);
+  }
+
   // TODO: set statuses for getting courses, getting submissions, num of submissions
   render() {
     return(
@@ -76,7 +80,10 @@ export default class Filters extends React.Component {
                                         <InputGroup.Prepend>
                                             <InputGroup.Checkbox checked />
                                         </InputGroup.Prepend>
-                                        <FormControl placeholder='60'/>
+                                        <FormControl 
+                                            placeholder={ this.props.refreshValue } 
+                                            ref='refreshInput'
+                                            onChange={ this.handleRefreshChange } />
                                         <InputGroup.Append>
                                             <InputGroup.Text>
                                                 Seconds

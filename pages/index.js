@@ -30,6 +30,7 @@ class Index extends React.Component {
         avatar_url: '',
       },
       refresh: 60,
+      refreshInterval: null,
       sort: {
         field: 'submitted',
         type: 'asc'
@@ -233,12 +234,18 @@ class Index extends React.Component {
         localStorage.setItem('courses', JSON.stringify(minCourses));
         this.setState((state) => ({
           courses: canvasData
-        }), this.startQueueRefresh );
+        }), () => {
+          this.getQueue()
+          this.startQueueRefresh()
+        } );
       });
     } else { // should also check if state is already set
       this.setState((state) => ({
         courses: JSON.parse(localStorage.getItem('courses'))
-      }), this.startQueueRefresh );
+      }), () => {
+        this.getQueue()
+        this.startQueueRefresh()
+      } );
     }
   }
 
@@ -278,8 +285,13 @@ class Index extends React.Component {
   }
 
   startQueueRefresh = () => {
-    this.getQueue();
-    setInterval(() => this.getQueue() , this.state.refresh * 1000);
+    if (this.state.refreshInterval != null) {
+      clearInterval(this.state.refreshInterval)
+    }
+    // this.getQueue();
+    this.setState((state) => ({
+      refreshInterval: setInterval(() => this.getQueue() , state.refresh * 1000)
+    }))
   }
 
   //TODO: validate courses prior to accessing
@@ -295,6 +307,14 @@ class Index extends React.Component {
         }), this.sortQueue )
       })
     })
+  }
+
+  setRefreshRate = (rate) => {
+    let validatedRate = Number.isNaN(Number(rate)) || Number(rate) < 1 ? this.state.refresh : Number(rate)
+    // cut last refresh timer, start new timer
+    this.setState((state) => ({
+      refresh: validatedRate
+    }), this.startQueueRefresh )
   }
 
   componentDidMount() {
@@ -315,9 +335,11 @@ class Index extends React.Component {
           <Row>
             <Col>
               <Filters 
+                refreshValue={ this.state.refresh }
                 viewOptions={ this.state.viewOptions }
                 onOptionsToggle={ this.toggleOptions }
-                onFilterQueue={ this.setFilteredQueue }/>
+                onFilterQueue={ this.setFilteredQueue }
+                onRefreshChange={ this.setRefreshRate }/>
             </Col>
           </Row>
           <Row>
