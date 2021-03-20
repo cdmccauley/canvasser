@@ -25,6 +25,7 @@ class Index extends React.Component {
     this.state = {
       loggedIn: false,
       canvasUser: {
+        id: '',
         name: '',
         avatar_url: '',
       },
@@ -42,33 +43,37 @@ class Index extends React.Component {
       selfReserved: [],
       otherReserved: [],
       courseFilter: '',
-
+      reserved: {},
     }
   }
 
   // TODO: need to set status on filtered queue too
   setStatus = (id, status) => {
+
     let index = this.state.queue.indexOf(this.state.queue.find((subId) => subId.id.toString() == id))
     if (index > -1) {
       let updatedQueue = this.state.queue;
-      updatedQueue[index].status = status;
-      if (status == 'self-reserved') {
-        this.setState((state) => ({
-          queue: updatedQueue,
-          selfReserved: [ ...this.state.selfReserved, id ]
-        }), this.setFilteredQueue(this.state.courseFilter) )
-      } else {
-        if (this.state.selfReserved.includes(id)) {
-          let updatedReserved = this.state.selfReserved.filter((resId) => resId != id)
-          this.setState((state) => ({
-            selfReserved: updatedReserved,
-            queue: updatedQueue
-          }), this.setFilteredQueue(this.state.courseFilter) )
+      let prevStatus = updatedQueue[index].status
+      if (prevStatus == 'unreserved-hover' && status == 'self-reserved' || prevStatus == 'self-reserved-hover' && status == 'unreserved-hover') {
+        let updatedReserved = this.state.selfReserved;
+        if (updatedReserved.includes(id)) {
+          updatedReserved.splice(updatedReserved.indexOf(id), 1) // unreserve
         } else {
+          updatedReserved.push(id) // reserve
+        }
+        this.setState((state) => ({
+          selfReserved: updatedReserved
+        }), this.postReserved(() => {
+          this.setReserved(updatedQueue)
           this.setState((state) => ({
             queue: updatedQueue
           }), this.setFilteredQueue(this.state.courseFilter) )
-        }
+        }))
+      } else {
+        updatedQueue[index].status = status
+        this.setState((state) => ({
+          queue: updatedQueue
+        }))
       }
     } else {
       console.log(id, 'not found')
@@ -170,7 +175,7 @@ class Index extends React.Component {
       body: JSON.stringify({
         url: this.state.canvasUrl,
         key: this.state.apiKey,
-        courses: courseInfo
+        courses: courseInfo,
       })
     })
     .then((res) => res.json())
@@ -178,11 +183,41 @@ class Index extends React.Component {
     .catch((err) => console.log(err));
   }
 
+  getReserved = (callback) => {
+    fetch('/api/reserve', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    .then((res) => res.json())
+    .then((data) => callback(data.reserved))
+    .catch((err) => console.log(err));
+  }
+
+  postReserved = (callback) => {
+    fetch('/api/reserve', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        userId: this.state.canvasUser.id,
+        userReserved: this.state.selfReserved
+      })
+    })
+    .then((res) => res.json())
+    .then((data) => this.setState((state) => ({
+      reserved: data.reserved
+    }), callback ))
+    .catch((err) => console.log(err));
+  }
+
   getCanvasUser = () => {
     // returns object
     this.callApi('/api/v1/users/self?access_token=', (canvasData) => {
       this.setState((state) => ({
-        canvasUser: canvasData
+        canvasUser: canvasData // user id is stored as number
       }), this.getUserCourses );
     });
   }
@@ -206,13 +241,17 @@ class Index extends React.Component {
     }
   }
 
-  setSelfReserved = (submissions) => {
+  setReserved = (submissions) => {
     submissions.forEach((submission) => {
-      this.state.selfReserved.forEach((id) => {
-        if (submission.id == id) {
-          submission.status = 'self-reserved'
-        }
-      })
+      let status = 'unreserved'
+      if (Object.keys(this.state.reserved).length > 0) {
+        Object.keys(this.state.reserved).forEach((id) => {
+          if (this.state.reserved[id].includes(submission.id.toString())) {
+            status = id == this.state.canvasUser.id.toString() ? 'self-reserved' : 'other-reserved'
+          }
+        })
+      }
+      submission.status = status
     })
   }
 
@@ -239,7 +278,7 @@ class Index extends React.Component {
 
   startQueueRefresh = () => {
     this.getQueue();
-    setInterval(() => this.getQueue() , 60000);
+    setInterval(() => this.getQueue() , 15000);
   }
 
   //TODO: validate courses prior to accessing
@@ -247,11 +286,13 @@ class Index extends React.Component {
     console.log('getting queue')
     this.callQueue(this.state.courses, (data) => {
       this.setSubPriorities(data)
-      this.setSelfReserved(data)
       this.setSubDates(data)
-      this.setState((state) => ({
-        queue: data
-      }), this.sortQueue )
+      this.postReserved(() => {
+        this.setReserved(data)
+        this.setState((state) => ({
+          queue: data
+        }), this.sortQueue )
+      })
     })
   }
 

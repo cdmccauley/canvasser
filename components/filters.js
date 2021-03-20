@@ -15,7 +15,7 @@ import { useAccordionToggle } from 'react-bootstrap/AccordionToggle';
 
 function CustomToggle ({ children, eventKey }) {
     // const decoratedOnClick = useAccordionToggle(eventKey, () =>
-    //     console.log(children.props.children.props.children),
+        // save for later
     // );
 
     const decoratedOnClick = useAccordionToggle(eventKey);
@@ -40,7 +40,7 @@ export default class Filters extends React.Component {
     this.props.onFilterQueue(ReactDOM.findDOMNode(this.refs.courseFilter).value);
   }
 
-  // TODO: set statuses, getting courses, getting submissions, num of submissions
+  // TODO: set statuses for getting courses, getting submissions, num of submissions
   render() {
     return(
         <Accordion className="mb-3 mt-3">
@@ -94,7 +94,3 @@ export default class Filters extends React.Component {
   }
 
 }
-
-{/* <Accordion.Toggle as={Card.Header} eventKey="0">
-                    Click me!
-                </Accordion.Toggle> */}

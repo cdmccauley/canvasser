@@ -2,13 +2,14 @@ import React from 'react';
 
 import Table from 'react-bootstrap/Table';
 
-import { Circle, CircleFill, CheckCircleFill, CheckCircle, XCircle } from 'react-bootstrap-icons';
+import { Circle, DashCircleFill, CheckCircleFill, CheckCircle, XCircle } from 'react-bootstrap-icons';
 
 export default class Queue extends React.Component {
-  UNRESERVED = 'unreserved'; // init in api/queue.js
+  UNRESERVED = 'unreserved';
   UNRESERVED_HOVER = 'unreserved-hover';
   SELF_RESERVED = 'self-reserved';
-  SELF_RESERVED_HOVER = 'self-reserved-hover'
+  SELF_RESERVED_HOVER = 'self-reserved-hover';
+  RESERVED = 'other-reserved';
 
   constructor(props) {
     super(props);
@@ -19,31 +20,40 @@ export default class Queue extends React.Component {
   }
 
   handleEnter = (id, classes) => {
-    let status;
-    if (classes.contains(this.UNRESERVED)) {
-      status = this.UNRESERVED_HOVER;
-    } else if (classes.contains(this.SELF_RESERVED)) {
-      status = this.SELF_RESERVED_HOVER;
-    }
-    this.setStatus(id, status)
-  }
-
-  handleLeave = (id, classes) => {
-    let status = '';
-    if (classes.contains(this.UNRESERVED_HOVER)) {
-      status = this.UNRESERVED;
-    } else if (classes.contains(this.SELF_RESERVED_HOVER)) {
-      status = this.SELF_RESERVED
-    }
-    if (!status == '') {
+    if (!classes.contains(this.RESERVED)) {
+      let status;
+      if (classes.contains(this.UNRESERVED)) {
+        status = this.UNRESERVED_HOVER;
+      } else if (classes.contains(this.SELF_RESERVED)) {
+        status = this.SELF_RESERVED_HOVER;
+      }
       this.setStatus(id, status)
     }
   }
 
+  handleLeave = (id, classes) => {
+    if (!classes.contains(this.RESERVED)) {
+      let status = '';
+      if (classes.contains(this.UNRESERVED_HOVER)) {
+        status = this.UNRESERVED;
+      } else if (classes.contains(this.SELF_RESERVED_HOVER)) {
+        status = this.SELF_RESERVED
+      }
+      if (!status == '') {
+        this.setStatus(id, status)
+      }
+    }
+  }
+
   handleClick = (id, classes) => {
-    classes.contains(this.UNRESERVED_HOVER) ?
+    if (!classes.contains(this.RESERVED)) {
+      classes.contains(this.UNRESERVED_HOVER) ?
       this.setStatus(id, this.SELF_RESERVED) :
       this.setStatus(id, this.UNRESERVED_HOVER)
+    } else {
+      //TODO: alert or popover
+      console.log('submission is reserved')
+    }
   }
 
   getStatusIcon = (id, status) => {
@@ -56,6 +66,8 @@ export default class Queue extends React.Component {
         return <CheckCircleFill />
       case this.SELF_RESERVED_HOVER:
         return <XCircle />
+      case this.RESERVED:
+        return <DashCircleFill />
       default:
         return 'e'
     }
