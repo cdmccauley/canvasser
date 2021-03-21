@@ -313,7 +313,7 @@ class Index extends React.Component {
   }
 
   setRefreshRate = (rate) => {
-    let validatedRate = Number.isNaN(Number(rate)) || Number(rate) < 1 ? this.state.refresh : Number(rate)
+    let validatedRate = Number.isNaN(Number(rate)) || Number(rate) < 20 ? this.state.refresh : Number(rate)
     this.setState((state) => ({
       refresh: validatedRate
     }), () => {

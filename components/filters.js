@@ -8,6 +8,8 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import InputGroup from 'react-bootstrap/InputGroup';
 import FormControl from 'react-bootstrap/FormControl';
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
+import Popover from 'react-bootstrap/Popover';
 
 import { CaretDownFill, CaretUpFill } from 'react-bootstrap-icons';
 
@@ -32,8 +34,18 @@ function CustomToggle ({ children, eventKey }) {
 
 export default class Filters extends React.Component {
 
+    popover = (
+        <Popover>
+            <Popover.Content style={{color: 'white'}}>
+                Minimum 20 Seconds
+            </Popover.Content>
+        </Popover>
+    )
+
   constructor(props) {
     super(props);
+
+    
   }
 
   handleCourseFilter = (e) => {
@@ -56,9 +68,9 @@ export default class Filters extends React.Component {
   // TODO: set statuses for getting courses, getting submissions, num of submissions
   render() {
     return(
-        <Accordion className="mb-3 mt-3">
+        <Accordion className='mb-3 mt-3'>
             <Card text='white' bg='dark'>
-                <CustomToggle eventKey="0">
+                <CustomToggle eventKey='0'>
                     <Container fluid='lg'>
                         <Row onClick={ () => this.props.onOptionsToggle() }>
                             <Col>
@@ -71,7 +83,7 @@ export default class Filters extends React.Component {
                         </Row>
                     </Container>
                 </CustomToggle>
-                <Accordion.Collapse eventKey="0">
+                <Accordion.Collapse eventKey='0'>
                     <Card.Body>
                         <Container fluid='lg'>
                             <Row>
@@ -91,10 +103,12 @@ export default class Filters extends React.Component {
                                                 checked={ this.props.autoRefresh }
                                                 onChange={ this.handleRefreshCheckedChange }/>
                                         </InputGroup.Prepend>
-                                        <FormControl 
-                                            placeholder={ this.props.refreshValue } 
-                                            ref='refreshInput'
-                                            onChange={ this.handleRefreshChange } />
+                                        <OverlayTrigger trigger='focus' placement='top' overlay={ this.popover }>
+                                            <FormControl 
+                                                placeholder={ this.props.refreshValue }
+                                                ref='refreshInput'
+                                                onChange={ this.handleRefreshChange } />
+                                        </OverlayTrigger>
                                         <InputGroup.Append>
                                             <InputGroup.Text>
                                                 Seconds
