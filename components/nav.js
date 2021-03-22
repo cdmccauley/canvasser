@@ -20,7 +20,7 @@ export default class Nav extends React.Component {
         <Navbar.Collapse className='justify-content-end'>
           <Dropdown drop={ 'left' }>
             <Dropdown.Toggle >
-              { this.props.loggedIn ? 
+              { this.props.authorized ? 
               <Image style={{width: '32px', height: '32px', border: '1px solid #000'}} src={ this.props.avatarUrl } roundedCircle /> : 
               <PersonCircle size={ 32 }/> }
             </Dropdown.Toggle>

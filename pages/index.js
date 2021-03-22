@@ -5,6 +5,7 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 
 import Login from '../components/login';
+import Authorize from '../components/authorize';
 import Nav from '../components/nav';
 import Filters from '../components/filters';
 import Queue from '../components/queue';
@@ -24,6 +25,7 @@ class Index extends React.Component {
 
     this.state = {
       loggedIn: false,
+      authorized: false,
       canvasUser: {
         id: '',
         name: '',
@@ -116,21 +118,46 @@ class Index extends React.Component {
     }), this.setFilteredQueue(this.state.courseFilter) )
   }
 
-  // TODO: clear browser storage
   toggleLogin = () => {
+    localStorage.removeItem('canvasUrl');
+    localStorage.removeItem('apiKey');
     this.setState((state) => ({
       loggedIn: false,
+      authorized: false,
       canvasUser: {
+        id: '',
         name: '',
         avatar_url: '',
       },
-      canvasUrl: '',
-      apiKey: '',
-      queue: []
+      autoRefresh: true,
+      refresh: 60,
+      refreshInterval: null,
+      sort: {
+        field: 'submitted',
+        type: 'asc'
+      },
+      queue: [],
+      filteredQueue: [],
+      priorities: [
+        ['meeting', 'cisco', 'course completion'],
+        ['pacific', ' ace ']
+      ],
+      viewOptions: false,
+      selfReserved: [],
+      otherReserved: [],
+      courseFilter: '',
+      reserved: {},
     }));
   }
 
-  saveLoginInfo = (canvasUrl, apiKey) => {
+  setLogin = (username, password) => {
+    console.log('username: ', username, 'password: ', password)
+    this.setState((state) => ({
+      loggedIn: true
+    }))
+  }
+
+  setAuthorization = (canvasUrl, apiKey) => {
     localStorage.setItem('canvasUrl', canvasUrl);
     localStorage.setItem('apiKey', apiKey);
     this.checkUserData();
@@ -143,11 +170,11 @@ class Index extends React.Component {
   checkUserData = () => {
     if (!localStorage.getItem('canvasUrl') || !localStorage.getItem('apiKey')) {
       this.setState((state) => ({
-        loggedIn: false
+        authorized: false
       }));
     } else {
       this.setState((state) => ({
-        loggedIn: true,
+        authorized: true,
         canvasUrl: localStorage.getItem('canvasUrl'),
         apiKey: localStorage.getItem('apiKey')
       }), this.getCanvasUser );
@@ -348,7 +375,7 @@ class Index extends React.Component {
           <title>Canvasser</title>
         </Head>
         <Nav 
-          loggedIn={ this.state.loggedIn }
+          authorized={ this.state.authorized }
           avatarUrl={ this.state.canvasUser.avatar_url }
           onLoginToggle={ this.toggleLogin }/>
         <Container fluid='lg'>
@@ -374,8 +401,12 @@ class Index extends React.Component {
           </Row>
         </Container>
         <Login 
+          loggedIn={ this.state.loggedIn }
+          onLoginClick={ this.setLogin }/>
+        <Authorize 
+          authorized={ this.state.authorized }
           loggedIn={ this.state.loggedIn } 
-          onLoginSubmit={ this.saveLoginInfo }/>
+          onAuthorizeClick={ this.setAuthorization }/>
       </React.Fragment>
     )
   }
