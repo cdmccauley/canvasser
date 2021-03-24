@@ -52,13 +52,14 @@ class Index extends React.Component {
   }
 
   // TODO: need to set status on filtered queue too
+  // reserve then unreserve will send back a reserved
   setStatus = (id, status) => {
-
+    
     let index = this.state.queue.indexOf(this.state.queue.find((subId) => subId.id.toString() == id))
     if (index > -1) {
       let updatedQueue = this.state.queue;
       let prevStatus = updatedQueue[index].status
-      if (prevStatus == 'unreserved-hover' && status == 'self-reserved' || prevStatus == 'self-reserved-hover' && status == 'unreserved-hover') {
+      if (prevStatus == 'unreserved-hover' && status == 'self-reserved' || prevStatus == 'self-reserved-hover' && status == 'unreserved-hover' || prevStatus =='self-reserved' && status == 'unreserved-hover') {
         let updatedReserved = this.state.selfReserved;
         if (updatedReserved.includes(id)) {
           updatedReserved.splice(updatedReserved.indexOf(id), 1) // unreserve
@@ -77,7 +78,7 @@ class Index extends React.Component {
         updatedQueue[index].status = status
         this.setState((state) => ({
           queue: updatedQueue
-        }))
+        }), this.setFilteredQueue(this.state.courseFilter))
       }
     } else {
       console.log(id, 'not found')
@@ -306,6 +307,7 @@ parseLinkHeader = (link) => {
     });
   }
 
+  //TODO: store courses to local
   setUserCourses = (courses) => {
     // console.log('storing courses in state: ', courses)
     this.setState((state) => ({
