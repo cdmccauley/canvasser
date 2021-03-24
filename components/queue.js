@@ -4,6 +4,8 @@ import Table from 'react-bootstrap/Table';
 
 import { Circle, DashCircleFill, CheckCircleFill, CheckCircle, XCircle } from 'react-bootstrap-icons';
 
+import styles from './Queue.module.css'
+
 export default class Queue extends React.Component {
   UNRESERVED = 'unreserved';
   UNRESERVED_HOVER = 'unreserved-hover';
@@ -83,7 +85,7 @@ export default class Queue extends React.Component {
           onMouseDownCapture={ (e) => this.handleClick(e.currentTarget.id, e.currentTarget.classList) } >
           { this.getStatusIcon(submission.id, submission.status) }</td>
         <td>{ submission.priority }</td>
-        <td style={{minWidth: '185px'}}>{ submission.submittedAt.toLocaleString() }</td>
+        <td className={styles.timestamp}>{ submission.submittedAt.toLocaleString() }</td>
         <td><a href={ submission.courseUrl } target='_blank'>{ submission.courseName }</a></td>
         <td><a href={ submission.url } target='_blank'>{ submission.name }</a></td>
       </tr>
