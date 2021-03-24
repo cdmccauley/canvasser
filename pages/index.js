@@ -29,6 +29,7 @@ class Index extends React.Component {
         name: '',
         avatar_url: '',
       },
+      courses: [],
       autoRefresh: true,
       refresh: 60,
       refreshInterval: null,
@@ -118,15 +119,35 @@ class Index extends React.Component {
 
   // TODO: clear browser storage
   toggleLogin = () => {
+    // localStorage.removeItem('canvasUrl')
+    // localStorage.removeItem('apiKey')
+    localStorage.removeItem('courses')
     this.setState((state) => ({
       loggedIn: false,
       canvasUser: {
+        id: '',
         name: '',
         avatar_url: '',
       },
-      canvasUrl: '',
-      apiKey: '',
-      queue: []
+      courses: [],
+      autoRefresh: true,
+      refresh: 60,
+      refreshInterval: null,
+      sort: {
+        field: 'submitted',
+        type: 'asc'
+      },
+      queue: [],
+      filteredQueue: [],
+      priorities: [
+        ['meeting', 'cisco', 'course completion'],
+        ['pacific', ' ace ']
+      ],
+      viewOptions: false,
+      selfReserved: [],
+      otherReserved: [],
+      courseFilter: '',
+      reserved: {},
     }));
   }
 
@@ -166,6 +187,66 @@ class Index extends React.Component {
     })
     .then((res) => res.json())
     .then((data) => callback(data.canvasData))
+    .catch((err) => console.log(err));
+  }
+
+  // parse a Link header
+//
+// Link:<https://example.org/.meta>; rel=meta
+//
+// var r = parseLinkHeader(xhr.getResponseHeader('Link');
+// r['meta'] outputs https://example.org/.meta
+//
+parseLinkHeader = (link) => {
+  var linkexp = /<[^>]*>\s*(\s*;\s*[^\(\)<>@,;:"\/\[\]\?={} \t]+=(([^\(\)<>@,;:"\/\[\]\?={} \t]+)|("[^"]*")))*(,|$)/g;
+  var paramexp = /[^\(\)<>@,;:"\/\[\]\?={} \t]+=(([^\(\)<>@,;:"\/\[\]\?={} \t]+)|("[^"]*"))/g;
+
+  var matches = link.match(linkexp);
+  var rels = {};
+  for (var i = 0; i < matches.length; i++) {
+      var split = matches[i].split('>');
+      var href = split[0].substring(1);
+      var ps = split[1];
+      var s = ps.match(paramexp);
+      for (var j = 0; j < s.length; j++) {
+          var p = s[j];
+          var paramsplit = p.split('=');
+          var name = paramsplit[0];
+          var rel = paramsplit[1].replace(/["']/g, '');
+          rels[rel] = href;
+      }
+  }
+  return rels;
+}
+
+  callCourses = (endpoint) => {
+    let links;
+    let resData;
+    return fetch('/api/courses', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        url: `${endpoint}${this.state.apiKey}`
+      })
+    })
+    .then((res) => {
+      // console.log('link headers: ', res.headers.get('link'))
+      links = this.parseLinkHeader(res.headers.get('link'))
+      // console.log('next: ', links['next']) // undefined if doesn't exist
+      // create new json that stores res.json and headers
+      return res.json()
+    })
+    .then((data) => {
+      resData = data
+      if (links['next'] != undefined) {
+        // console.log('link header found')
+        data.next = links['next']
+      }
+      // callback(resData) // also removing callback from parameters
+      return resData
+    })
     .catch((err) => console.log(err));
   }
 
@@ -221,33 +302,32 @@ class Index extends React.Component {
     this.callApi('/api/v1/users/self?access_token=', (canvasData) => {
       this.setState((state) => ({
         canvasUser: canvasData // user id is stored as number
-      }), this.getUserCourses );
+      }), this.getUserCourses(`${this.state.canvasUrl}/api/v1/courses?enrollment_type=teacher&access_token=`) );
     });
   }
 
-  getUserCourses = () => {
-    console.log('getting courses')
-    // returns array of objects
-    if (!localStorage.getItem('courses')) {
-      this.callApi('/api/v1/courses?enrollment_type=teacher&per_page=1000&include[]=needs_grading_count&access_token=', (canvasData) => {
-        let minCourses = []
-        canvasData.forEach((course) => minCourses.push({id: course.id, name: course.name}))
-        localStorage.setItem('courses', JSON.stringify(minCourses));
-        this.setState((state) => ({
-          courses: canvasData
-        }), () => {
-          this.getQueue()
-          this.startQueueRefresh()
-        } );
-      });
-    } else { // should also check if state is already set
-      this.setState((state) => ({
-        courses: JSON.parse(localStorage.getItem('courses'))
-      }), () => {
-        this.getQueue()
-        this.startQueueRefresh()
-      } );
-    }
+  setUserCourses = (courses) => {
+    // console.log('storing courses in state: ', courses)
+    this.setState((state) => ({
+      courses: [...state.courses, ...courses]
+    }), () => {
+      this.getQueue()
+      this.startQueueRefresh()
+    });
+  }
+
+  //TODO: get courses in background when user is logged in
+  getUserCourses = (endpoint, localData = []) => {
+    // console.log('getting courses: ', endpoint)
+    let data = this.callCourses(endpoint)
+    data.then((res) => {
+      if (res.next != undefined) {
+        this.getUserCourses(`${res.next}&access_token=`, localData.concat(res.canvasData))
+      } else {
+        // console.log('localData: ', localData.concat(res.canvasData))
+        this.setUserCourses(localData.concat(res.canvasData))
+      }
+    })
   }
 
   setReserved = (submissions) => {

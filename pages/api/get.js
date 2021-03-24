@@ -1,13 +1,13 @@
 export default async function handler(req, res) {
-  // console.log('/get POST: ', req.body.url);
-  console.log('/get: ', req.method, 'with: ', req.body.url)
+  // limit to 10s response https://vercel.com/docs/platform/limits
 
+  console.log('api/get start: ', Math.floor(Date.now() / 1000))
   await fetch(req.body.url)
     .then(canvasRes => canvasRes.json())
     .then(canvasData => {
-      console.log('responding with: ', canvasData)
       res.status(200).json(JSON.stringify({
         canvasData
       }))
+      console.log('api/get finish: ', Math.floor(Date.now() / 1000))
   }).catch((err) => console.log(err));
 }
