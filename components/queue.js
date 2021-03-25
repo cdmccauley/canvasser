@@ -75,6 +75,7 @@ export default class Queue extends React.Component {
     }
   }
 
+  //TODO: make unreserved status td's a link to the assignment
   getTr = (submission) => {
     let bg = submission.priority == 1 ? {backgroundColor: '#7c2020'} : {};
     return(
