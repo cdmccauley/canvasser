@@ -49,9 +49,15 @@ export default class Queue extends React.Component {
 
   handleClick = (id, classes) => {
     if (!classes.contains(this.RESERVED)) {
-      classes.contains(this.UNRESERVED_HOVER) ?
-      this.setStatus(id, this.SELF_RESERVED) :
-      this.setStatus(id, this.UNRESERVED_HOVER)
+      if (classes.contains(this.UNRESERVED_HOVER)) {
+        Object.assign(document.createElement('a'), {
+          target: '_blank',
+          href: this.props.queue.find((sub) => { return id == sub.id}).url,
+        }).click()
+        this.setStatus(id, this.SELF_RESERVED)
+      } else {
+        this.setStatus(id, this.UNRESERVED_HOVER)
+      }
     } else {
       //TODO: alert or popover
       console.log('submission is reserved')
