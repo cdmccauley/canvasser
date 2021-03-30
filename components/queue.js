@@ -92,9 +92,9 @@ export default class Queue extends React.Component {
           onMouseDownCapture={ (e) => this.handleClick(e.currentTarget.id, e.currentTarget.classList) } >
           { this.getStatusIcon(submission.id, submission.status) }</td>
         <td>{ submission.priority }</td>
-        <td className={styles.timestamp}>{ submission.submittedAt.toLocaleString() }</td>
         <td><a href={ submission.courseUrl } target='_blank'>{ submission.courseName }</a></td>
         <td><a href={ submission.url } target='_blank'>{ submission.name }</a></td>
+        <td className={styles.timestamp}>{ submission.submittedAt.toLocaleString() }</td>
       </tr>
     )
   }
@@ -107,9 +107,9 @@ export default class Queue extends React.Component {
             <tr>
               <th>Status</th>
               <th>Priority</th>
-              <th>Submitted</th>
               <th>Course</th>
               <th>Assignment</th>
+              <th>Submitted</th>
             </tr>
           </thead>
           <tbody>
