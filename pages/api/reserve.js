@@ -1,6 +1,7 @@
 let reserved = {}
 
 export default function handler(req, res) {
+    // console.log(process.env.MONGO_USERNAME, process.env.MONGO_PASSWORD)
     if (req.method === 'POST') {
         let userId = req.body.userId.toString() // user id is stored as number in index
         let userReserved = req.body.userReserved
