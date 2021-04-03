@@ -1,26 +1,60 @@
 const { MongoClient } = require("mongodb");
-const client = new MongoClient(process.env.MONGO_CONNECTION, { useUnifiedTopology: true });
 let reserved = {}
 
-export default function handler(req, res) {
-    // console.log(process.env.MONGO_CONNECTION)
-    (async ()=> {
-        try {
-            // Connect the client to the server
-            await client.connect();
-            // Establish and verify connection
-            const database = client.db(process.env.MONGO_DB);
-            const collection = database.collection(process.env.MONGO_COLLECTION)
-            console.log(collection);
-        } finally {
-            // Ensures that the client will close when you finish/error
-            await client.close();
-        }
-    })().catch(console.dir);
-
-
+export default async function handler(req, res) {
     if (req.method === 'POST') {
-        let userId = req.body.userId.toString() // user id is stored as number in index
+        if (req.body.url.includes('davistech.instructure')) {
+            // init array for calling to canvas for actual assignment ids
+            let fetchCalls = []
+            // create mongo client
+            const client = new MongoClient(process.env.MONGO_CONNECTION, { useUnifiedTopology: true });
+            try {
+                // reset external reservations
+                // TEST: if multiple people are calling this endpoint at the same time can they interfere by resetting reserved[]?
+                reserved['external'] = []
+                // connect to mongo
+                await client.connect();
+                // get db
+                const database = client.db(process.env.MONGO_DB);
+                // get collection
+                const collection = database.collection(process.env.MONGO_COLLECTION)
+                // get external reservations
+                await collection.find().toArray()
+                .then((arr) => arr.forEach((item) => {
+                    /* 
+                    convert each external reservation _id to api endpoint and save for fetching
+                    NOTES:
+                    if another property is added to the document canvas assistant will crash
+                    api/ca-reserve.js uses * to indicate that grader is using canvasser
+                    if a user is using canvasser they don't need to be added to external
+                    TODO:
+                    contribute to canvas assistant to remove this flaw
+                    */
+                    if (item.grader[0] != '*') {
+                        // get course id, assignment id, and student id
+                        let ids = item._id.match(/\d{1,}/g)
+                        // store api endpoint
+                        fetchCalls.push(`${req.body.url}/api/v1/courses/${ids[0]}/assignments/${ids[1]}/submissions/${ids[2]}?access_token=${req.body.key}`)
+                    }
+                }))
+                // call to canvas to get actual assignment id of each external reservation
+                await Promise.all(fetchCalls.map((url) => {
+                        return new Promise((resolve, reject) => {
+                            resolve(fetch(url))
+                        })
+                        .then((res) => res.json())
+                        .then((data) => reserved['external'].push(data.id.toString()))
+                    })
+                )
+            } catch (e) {
+                console.log('reserve exception: ', e)
+            } finally {
+                // close mongo client
+                await client.close();
+            }
+        }
+        // canvasser only reserve
+        let userId = req.body.userId.toString() // user id is stored as number in index and needs conversion
         let userReserved = req.body.userReserved
         if (Object.keys(reserved).length > 0) { // if there are current reserved
             Object.keys(reserved).forEach((id) => { // for each user in reserved
@@ -34,13 +68,11 @@ export default function handler(req, res) {
                 }
             })
         }
+        // set user reservations that were able to be reserved
         reserved[req.body.userId] = userReserved
-        res.status(200).json(JSON.stringify({
-            reserved
-        }))
-    } else if (req.method == 'GET') {
-        res.status(200).json(JSON.stringify({
-            reserved
-        }))
     }
+    // send back all reservations
+    res.status(200).json(JSON.stringify({
+        reserved
+    }))
 }

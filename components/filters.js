@@ -60,6 +60,7 @@ export default class Filters extends React.Component {
     this.props.onRefreshChange(e.target.value);
   }
 
+  //TODO: noticed when re-enabling refresh the queue isn't called for immediately
   handleRefreshCheckedChange = (e) => {
     // console.log('filters.js, handleRefreshCheckedChange e: ', e.target.checked)
     this.props.onRefreshCheckedChange(e.target.checked);
