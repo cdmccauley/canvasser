@@ -26,5 +26,5 @@ export default async function handler(req, res) {
             await client.close();
         }
     }
-    res.status(200)
+    res.status(200).send()
 }
