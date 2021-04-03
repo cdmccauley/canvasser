@@ -43,12 +43,14 @@ export default async function handler(req, res) {
                             resolve(fetch(url))
                         })
                         .then((res) => {
-                            console.log('reserved res: ', res)
+                            // console.log('reserved res: ', res)
                             return res.json()
                         })
                         .then((data) => {
-                            console.log('reserved data: ', data)
-                            reserved['external'].push(data.id.toString())
+                            // console.log('reserved data: ', data)
+                            if (data.errors == undefined) {
+                                reserved['external'].push(data.id.toString())
+                            }
                         }) // cannot read prop toString
                     })
                 )
