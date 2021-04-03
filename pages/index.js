@@ -51,6 +51,21 @@ class Index extends React.Component {
     }
   }
 
+  caReserver = (sgUrl, action) => {
+    console.log('caReserver called')
+    fetch('/api/ca-reserve', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        type: action,
+        _id: sgUrl,
+        user: this.state.canvasUser.name
+      })
+    })
+  }
+
   // TODO: need to set status on filtered queue too
   // reserve then unreserve will send back a reserved
   setStatus = (id, status) => {
@@ -63,8 +78,10 @@ class Index extends React.Component {
         let updatedReserved = this.state.selfReserved;
         if (updatedReserved.includes(id)) {
           updatedReserved.splice(updatedReserved.indexOf(id), 1) // unreserve
+          this.caReserver(updatedQueue[index].url, 'unreserve')
         } else {
           updatedReserved.push(id) // reserve
+          this.caReserver(updatedQueue[index].url, 'reserve')
         }
         this.setState((state) => ({
           selfReserved: updatedReserved
@@ -192,33 +209,33 @@ class Index extends React.Component {
   }
 
   // parse a Link header
-//
-// Link:<https://example.org/.meta>; rel=meta
-//
-// var r = parseLinkHeader(xhr.getResponseHeader('Link');
-// r['meta'] outputs https://example.org/.meta
-//
-parseLinkHeader = (link) => {
-  var linkexp = /<[^>]*>\s*(\s*;\s*[^\(\)<>@,;:"\/\[\]\?={} \t]+=(([^\(\)<>@,;:"\/\[\]\?={} \t]+)|("[^"]*")))*(,|$)/g;
-  var paramexp = /[^\(\)<>@,;:"\/\[\]\?={} \t]+=(([^\(\)<>@,;:"\/\[\]\?={} \t]+)|("[^"]*"))/g;
+  //
+  // Link:<https://example.org/.meta>; rel=meta
+  //
+  // var r = parseLinkHeader(xhr.getResponseHeader('Link');
+  // r['meta'] outputs https://example.org/.meta
+  //
+  parseLinkHeader = (link) => {
+    var linkexp = /<[^>]*>\s*(\s*;\s*[^\(\)<>@,;:"\/\[\]\?={} \t]+=(([^\(\)<>@,;:"\/\[\]\?={} \t]+)|("[^"]*")))*(,|$)/g;
+    var paramexp = /[^\(\)<>@,;:"\/\[\]\?={} \t]+=(([^\(\)<>@,;:"\/\[\]\?={} \t]+)|("[^"]*"))/g;
 
-  var matches = link.match(linkexp);
-  var rels = {};
-  for (var i = 0; i < matches.length; i++) {
-      var split = matches[i].split('>');
-      var href = split[0].substring(1);
-      var ps = split[1];
-      var s = ps.match(paramexp);
-      for (var j = 0; j < s.length; j++) {
-          var p = s[j];
-          var paramsplit = p.split('=');
-          var name = paramsplit[0];
-          var rel = paramsplit[1].replace(/["']/g, '');
-          rels[rel] = href;
-      }
+    var matches = link.match(linkexp);
+    var rels = {};
+    for (var i = 0; i < matches.length; i++) {
+        var split = matches[i].split('>');
+        var href = split[0].substring(1);
+        var ps = split[1];
+        var s = ps.match(paramexp);
+        for (var j = 0; j < s.length; j++) {
+            var p = s[j];
+            var paramsplit = p.split('=');
+            var name = paramsplit[0];
+            var rel = paramsplit[1].replace(/["']/g, '');
+            rels[rel] = href;
+        }
+    }
+    return rels;
   }
-  return rels;
-}
 
   callCourses = (endpoint) => {
     let links;
@@ -288,13 +305,17 @@ parseLinkHeader = (link) => {
       },
       body: JSON.stringify({
         userId: this.state.canvasUser.id,
-        userReserved: this.state.selfReserved
+        userReserved: this.state.selfReserved,
+        url: this.state.canvasUrl,
+        key: this.state.apiKey
       })
     })
     .then((res) => res.json())
-    .then((data) => this.setState((state) => ({
-      reserved: data.reserved
-    }), callback ))
+    .then((data) => {
+      this.setState((state) => ({
+        reserved: data.reserved
+      }), callback )
+    })
     .catch((err) => console.log(err));
   }
 
