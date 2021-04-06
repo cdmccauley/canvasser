@@ -1,5 +1,7 @@
 const { MongoClient } = require("mongodb");
 
+// duplicate key error when a second person reserves
+
 export default async function handler(req, res) {
     if (req.body._id.includes('davistech.instructure')) {
         const client = new MongoClient(process.env.MONGO_CONNECTION, { useUnifiedTopology: true });

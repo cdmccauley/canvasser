@@ -1,6 +1,9 @@
 const { MongoClient } = require("mongodb");
 let reserved = {}
 
+// FIX: if reservations happen quickly then 2nd to click gets self-reserved, 1st gets other-reserved
+// then if 2nd unreserves, 1st shows self-reserved
+
 export default async function handler(req, res) {
     if (req.method === 'POST') {
         if (req.body.url.includes('davistech.instructure')) {

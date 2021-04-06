@@ -78,11 +78,20 @@ class Index extends React.Component {
         let updatedReserved = this.state.selfReserved;
         if (updatedReserved.includes(id)) {
           updatedReserved.splice(updatedReserved.indexOf(id), 1) // unreserve
-          this.caReserver(updatedQueue[index].url, 'unreserve')
+          // preset statuses temporarily for a responsive ui
+          updatedQueue[index].status = 'unreserved'
+          this.setState((state) => ({
+            queue: updatedQueue
+          }), this.caReserver(updatedQueue[index].url, 'unreserve')) // interface with ca
         } else {
           updatedReserved.push(id) // reserve
-          this.caReserver(updatedQueue[index].url, 'reserve')
+          // preset statuses temporarily for a responsive ui
+          updatedQueue[index].status = 'self-reserved'
+          this.setState((state) => ({
+            queue: updatedQueue
+          }), this.caReserver(updatedQueue[index].url, 'reserve')) // interface with ca
         }
+
         this.setState((state) => ({
           selfReserved: updatedReserved
         }), this.postReserved(() => {
@@ -135,10 +144,10 @@ class Index extends React.Component {
     }), this.setFilteredQueue(this.state.courseFilter) )
   }
 
-  // TODO: clear browser storage
+  // TODO: clear browser storage, clear refresh
   toggleLogin = () => {
-    // localStorage.removeItem('canvasUrl')
-    // localStorage.removeItem('apiKey')
+    localStorage.removeItem('canvasUrl')
+    localStorage.removeItem('apiKey')
     localStorage.removeItem('courses')
     this.setState((state) => ({
       loggedIn: false,
@@ -359,6 +368,7 @@ class Index extends React.Component {
       if (Object.keys(this.state.reserved).length > 0) {
         Object.keys(this.state.reserved).forEach((id) => {
           if (this.state.reserved[id].includes(submission.id.toString())) {
+            // reserved not updating on startup/refresh here?
             status = id == this.state.canvasUser.id.toString() ? 'self-reserved' : 'other-reserved'
           }
         })
