@@ -24,6 +24,7 @@ export default async function handler(req, res) {
                 // get external reservations
                 await collection.find().toArray()
                 .then((arr) => arr.forEach((item) => {
+                    console.log('reserve.js: ', item)
                     /* 
                     convert each external reservation _id to api endpoint and save for fetching
                     NOTES:
@@ -68,6 +69,7 @@ export default async function handler(req, res) {
         let userId = req.body.userId.toString() // user id is stored as number in index and needs conversion
         let userReserved = req.body.userReserved
         if (Object.keys(reserved).length > 0) { // if there are current reserved
+            // console.log(reserved)
             Object.keys(reserved).forEach((id) => { // for each user in reserved
                 if (userId != id) { // make sure the user is not current user
                     userReserved.forEach((subId) => { // found another user, need to compare res ids

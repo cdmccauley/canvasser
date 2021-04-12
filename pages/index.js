@@ -51,6 +51,7 @@ class Index extends React.Component {
     }
   }
 
+  // TODO: send self-reserved and clear out db entries
   caReserver = (sgUrl, action) => {
     console.log('caReserver called')
     fetch('/api/ca-reserve', {
@@ -410,12 +411,22 @@ class Index extends React.Component {
     }), () => console.log('started refresh'))
   }
 
+  cleanSelfReserved = () => {
+    let caIds = []
+    //create list of ca ids from selfreserved
+    this.state.selfReserved.forEach((id) => {
+      caIds.push(this.state.queue.find((sub) => sub.id.toString() == id).url)
+    })
+    this.caReserver(caIds, 'clean')
+  }
+
   //TODO: validate courses prior to accessing
   getQueue = () => {
     console.log('getting queue')
     this.callQueue(this.state.courses, (data) => {
       this.setSubPriorities(data)
       this.setSubDates(data)
+      this.cleanSelfReserved()
       this.postReserved(() => {
         this.setReserved(data)
         this.setState((state) => ({

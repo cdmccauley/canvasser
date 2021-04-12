@@ -3,7 +3,7 @@ const { MongoClient } = require("mongodb");
 // duplicate key error when a second person reserves
 
 export default async function handler(req, res) {
-    if (req.body._id.includes('davistech.instructure')) {
+    if (req.body._id.includes('davistech.instructure') || Array.isArray(req.body._id)) {
         const client = new MongoClient(process.env.MONGO_CONNECTION, { useUnifiedTopology: true });
         try {
             await client.connect();
@@ -21,10 +21,23 @@ export default async function handler(req, res) {
                 await collection.deleteOne({
                     _id: req.body._id
                 })
+            } else if (req.body.type == 'clean') {
+                console.log('cleaning')
+                await collection.find({grader: `*${req.body.user}`})
+                .forEach(async (reservation) => {
+                    console.log('cleaning reservation: ', reservation)
+                    if (!req.body._id.includes(reservation._id)) {
+                        console.log('deleteOne, user: ', reservation.grader, '_id: ', reservation._id)
+                        await collection.deleteOne({
+                            _id: reservation._id
+                        })
+                    }
+                })
             }
         } catch (e) {
             console.log('ca-reserve.js exception: ', e)
         } finally {
+            console.log('closing')
             await client.close();
         }
     }
