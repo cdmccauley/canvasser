@@ -412,12 +412,15 @@ class Index extends React.Component {
   }
 
   cleanSelfReserved = () => {
-    let caIds = []
-    //create list of ca ids from selfreserved
-    this.state.selfReserved.forEach((id) => {
-      caIds.push(this.state.queue.find((sub) => sub.id.toString() == id).url)
-    })
-    this.caReserver(caIds, 'clean')
+    console.log('cleanSelfReserved: ', this.state.queue)
+    if (Array.isArray(this.state.queue)) {
+      let caIds = []
+      //create list of ca ids from selfreserved
+      this.state.selfReserved.forEach((id) => {
+        caIds.push(this.state.queue.find((sub) => sub.id.toString() == id).url)
+      })
+      this.caReserver(caIds, 'clean')
+    }
   }
 
   //TODO: validate courses prior to accessing

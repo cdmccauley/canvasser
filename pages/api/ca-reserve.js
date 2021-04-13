@@ -24,12 +24,23 @@ export default async function handler(req, res) {
             } else if (req.body.type == 'clean') {
                 console.log('cleaning')
                 await collection.find({grader: `*${req.body.user}`})
-                .forEach(async (reservation) => {
+                .forEach((reservation) => {
                     console.log('cleaning reservation: ', reservation)
                     if (!req.body._id.includes(reservation._id)) {
                         console.log('deleteOne, user: ', reservation.grader, '_id: ', reservation._id)
-                        await collection.deleteOne({
-                            _id: reservation._id
+                        // await collection.deleteOne({
+                        //     _id: reservation._id
+                        // })
+                        fetch('https://canvasser.vercel.app/api/ca-reserve', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                type: 'unreserve',
+                                _id: reservation._id,
+                                user: req.body.user
+                            })
                         })
                     }
                 })
