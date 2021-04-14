@@ -17,20 +17,16 @@ export default async function handler(req, res) {
                     reserved_at: new Date().toLocaleString().replace(',', ''),
                 })
             } else if (req.body.type == 'unreserve') {
+                console.log('unreserving: ', req.body)
                 // TEST: canvasser may be able to unreserve ca reservations
                 await collection.deleteOne({
                     _id: req.body._id
                 })
-            } else if (req.body.type == 'clean') {
-                console.log('cleaning')
+            } else if (req.body.type == 'clear') {
                 await collection.find({grader: `*${req.body.user}`})
                 .forEach((reservation) => {
-                    console.log('cleaning reservation: ', reservation)
                     if (!req.body._id.includes(reservation._id)) {
-                        console.log('deleteOne, user: ', reservation.grader, '_id: ', reservation._id)
-                        // await collection.deleteOne({
-                        //     _id: reservation._id
-                        // })
+                        console.log('clearing reservation: ', reservation)
                         fetch('https://canvasser.vercel.app/api/ca-reserve', {
                             method: 'POST',
                             headers: {
@@ -48,7 +44,6 @@ export default async function handler(req, res) {
         } catch (e) {
             console.log('ca-reserve.js exception: ', e)
         } finally {
-            console.log('closing')
             await client.close();
         }
     }
