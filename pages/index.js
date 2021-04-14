@@ -416,10 +416,14 @@ class Index extends React.Component {
     if (Array.isArray(this.state.queue)) {
       let caIds = []
       //create list of ca ids from selfreserved
-      this.state.selfReserved.forEach((id) => {
-        caIds.push(this.state.queue.find((sub) => sub.id.toString() == id).url)
-      })
-      this.caReserver(caIds, 'clear')
+      try {
+        this.state.selfReserved.forEach((id) => {
+          caIds.push(this.state.queue.find((sub) => sub.id.toString() == id).url)
+        })
+        this.caReserver(caIds, 'clear')
+      } catch (e) {
+        console.log('clearSelfReserved exception: ', e)
+      }
     }
   }
 
