@@ -119,7 +119,7 @@ class Index extends React.Component {
     this.setState((state) => ({
       courseFilter: filter,
       filteredQueue: updatedQueue
-    }), this.clearSelfReserved())
+    }))
   }
 
   toggleOptions = () => {
@@ -418,7 +418,7 @@ class Index extends React.Component {
       //create list of ca ids from selfreserved
       try {
         this.state.selfReserved.forEach((id) => {
-          caIds.push(this.state.queue.find((sub) => sub.id.toString() == id).url)
+          caIds.push(this.state.queue.filter((sub) => sub.id.toString() == id)[0].url)
         })
         this.caReserver(caIds, 'clear')
       } catch (e) {
@@ -430,7 +430,7 @@ class Index extends React.Component {
   //TODO: validate courses prior to accessing
   getQueue = () => {
     console.log('getting queue')
-    // this.clearSelfReserved() // moved to setFilterQueue
+    this.clearSelfReserved() // moved to setFilterQueue
     this.callQueue(this.state.courses, (data) => {
       this.setSubPriorities(data)
       this.setSubDates(data)
