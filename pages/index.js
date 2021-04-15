@@ -407,7 +407,7 @@ class Index extends React.Component {
     // this.getQueue();
     this.setState((state) => ({
       autoRefresh: true,
-      refreshInterval: setInterval(() => this.getQueue() , state.refresh * 1000)
+      refreshInterval: setInterval(() => this.getQueue(), state.refresh * 1000)
     }), () => console.log('started refresh'))
   }
 
@@ -415,12 +415,16 @@ class Index extends React.Component {
     console.log('clearing self-reserved')
     if (Array.isArray(this.state.queue)) {
       let caIds = []
+      let tempQueue = this.state.queue
       //create list of ca ids from selfreserved
       try {
         this.state.selfReserved.forEach((id) => {
-          caIds.push(this.state.queue.filter((sub) => sub.id.toString() == id)[0].url)
+          console.log('clearing: ', tempQueue.find((sub) => sub.id.toString() == id).url)
+          caIds.push(tempQueue.find((sub) => sub.id.toString() == id).url)
         })
-        this.caReserver(caIds, 'clear')
+        if (caIds.length > 0) {
+          this.caReserver(caIds, 'clear')
+        }
       } catch (e) {
         console.log('clearSelfReserved exception: ', e)
       }
@@ -430,7 +434,7 @@ class Index extends React.Component {
   //TODO: validate courses prior to accessing
   getQueue = () => {
     console.log('getting queue')
-    this.clearSelfReserved() // moved to setFilterQueue
+    this.clearSelfReserved()
     this.callQueue(this.state.courses, (data) => {
       this.setSubPriorities(data)
       this.setSubDates(data)
