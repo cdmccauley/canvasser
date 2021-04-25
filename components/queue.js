@@ -1,122 +1,173 @@
-import React from 'react';
+import React, { useState } from 'react'
 
-import Table from 'react-bootstrap/Table';
+import useCourses from '../data/use-courses';
+import useQueue from '../data/use-queue';
 
-import { Circle, DashCircleFill, CheckCircleFill, CheckCircle, XCircle } from 'react-bootstrap-icons';
+import { makeStyles } from '@material-ui/core/styles';
+import {
+    Paper,
+    TableContainer,
+    Table,
+    TableHead,
+    TableSortLabel,
+    TableBody,
+    TableRow,
+    TableCell,
+    Checkbox,
+    Link,
 
-import styles from './Queue.module.css'
+} from '@material-ui/core';
 
-export default class Queue extends React.Component {
-  UNRESERVED = 'unreserved';
-  UNRESERVED_HOVER = 'unreserved-hover';
-  SELF_RESERVED = 'self-reserved';
-  SELF_RESERVED_HOVER = 'self-reserved-hover';
-  RESERVED = 'other-reserved';
+import styles from '../styles/Queue.module.css';
 
-  constructor(props) {
-    super(props);
-  }
-
-  setStatus = (id, status) => {
-    this.props.onSetStatus(id, status)
-  }
-
-  handleEnter = (id, classes) => {
-    if (!classes.contains(this.RESERVED)) {
-      let status;
-      if (classes.contains(this.UNRESERVED)) {
-        status = this.UNRESERVED_HOVER;
-      } else if (classes.contains(this.SELF_RESERVED)) {
-        status = this.SELF_RESERVED_HOVER;
-      }
-      this.setStatus(id, status)
+function descendingComparator(a, b, orderBy) {
+    if (b[orderBy] < a[orderBy]) {
+        return -1;
     }
-  }
-
-  handleLeave = (id, classes) => {
-    if (!classes.contains(this.RESERVED)) {
-      let status = '';
-      if (classes.contains(this.UNRESERVED_HOVER)) {
-        status = this.UNRESERVED;
-      } else if (classes.contains(this.SELF_RESERVED_HOVER)) {
-        status = this.SELF_RESERVED
-      }
-      if (!status == '') {
-        this.setStatus(id, status)
-      }
+    if (b[orderBy] > a[orderBy]) {
+        return 1;
     }
-  }
+    return 0;
+}
 
-  handleClick = (id, classes) => {
-    if (!classes.contains(this.RESERVED)) {
-      if (classes.contains(this.UNRESERVED_HOVER)) {
-        Object.assign(document.createElement('a'), {
-          target: '_blank',
-          href: this.props.queue.find((sub) => { return id == sub.id}).url,
-        }).click()
-        this.setStatus(id, this.SELF_RESERVED)
-      } else {
-        this.setStatus(id, this.UNRESERVED_HOVER)
-      }
-    } else {
-      //TODO: alert or popover
-      console.log('submission is reserved')
-    }
-  }
+function getComparator(order, orderBy) {
+    return order === 'desc'
+        ? (a, b) => descendingComparator(a, b, orderBy)
+        : (a, b) => -descendingComparator(a, b, orderBy);
+}
 
-  getStatusIcon = (id, status) => {
-    switch (status) {
-      case this.UNRESERVED:
-        return <Circle />
-      case this.UNRESERVED_HOVER:
-        return <CheckCircle />
-      case this.SELF_RESERVED:
-        return <CheckCircleFill />
-      case this.SELF_RESERVED_HOVER:
-        return <XCircle />
-      case this.RESERVED:
-        return <DashCircleFill />
-      default:
-        return 'e'
-    }
-  }
+function stableSort(array, comparator) {
+    const stabilizedThis = array.map((el, index) => [el, index]);
+    stabilizedThis.sort((a, b) => {
+        const order = comparator(a[0], b[0]);
+        if (order !== 0) return order;
+        return a[1] - b[1];
+    });
+    return stabilizedThis.map((el) => el[0]);
+}
 
-  //TODO: make unreserved status td's a link to the assignment
-  getTr = (submission) => {
-    let bg = submission.priority == 1 ? {backgroundColor: '#7c2020'} : {};
-    return(
-      <tr style={bg} key={ submission.id }>
-        <td id={ submission.id } className={`text-center ${submission.status}`} 
-          onMouseEnter={ (e) => this.handleEnter(e.target.id, e.target.classList) }
-          onMouseLeave={ (e) => this.handleLeave(e.target.id, e.target.classList) }
-          onMouseDownCapture={ (e) => this.handleClick(e.currentTarget.id, e.currentTarget.classList) } >
-          { this.getStatusIcon(submission.id, submission.status) }</td>
-        <td>{ submission.priority }</td>
-        <td><a href={ submission.courseUrl } target='_blank'>{ submission.courseName }</a></td>
-        <td><a href={ submission.url } target='_blank'>{ submission.name }</a></td>
-        <td className={styles.timestamp}>{ submission.submittedAt.toLocaleString() }</td>
-      </tr>
+// id should be name of object property for sorting
+const sortCells = [
+    { id: 'priority', label: 'Priority' },
+    { id: 'courseName', label: 'Course' },
+    { id: 'assignmentName', label: 'Assignment' },
+    { id: 'submittedAt', label: 'Submitted' },
+  ];
+
+function CustomTableHead(props) {
+    const { order, orderBy, onRequestSort, classes } = props;
+    const createSortHandler = (property) => (event) => {
+        onRequestSort(event, property);
+    };
+
+    return (
+        <TableHead>
+            <TableRow>
+                <TableCell>Status</TableCell>
+                {sortCells.map((sortCell) => (
+                    <TableCell
+                        key={sortCell.id}
+                        sortDirection={orderBy === sortCell.id ? order : false}
+                    >
+                        <TableSortLabel
+                            active={orderBy === sortCell.id}
+                            direction={orderBy === sortCell.id ? order : 'asc'}
+                            onClick={createSortHandler(sortCell.id)}
+                        >
+                            {sortCell.label}
+                            {orderBy === sortCell.id ? (
+                                <span className={classes.visuallyHidden}>
+                                    {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
+                                </span>
+                            ) : null}
+                        </TableSortLabel>
+                    </TableCell>
+                ))}
+            </TableRow>
+        </TableHead>
     )
-  }
+}
 
-  render() {
+const useStyles = makeStyles((theme) => ({
+            visuallyHidden: {
+            border: 0,
+            clip: 'rect(0 0 0 0)',
+            height: 1,
+            margin: -1,
+            overflow: 'hidden',
+            padding: 0,
+            position: 'absolute',
+            top: 20,
+            width: 1,
+        },
+    }));
+
+export default function Queue(props) {
+    // console.log('queue props: ', props)
+    const classes = useStyles();
+    const [order, setOrder] = React.useState('asc');
+    const [orderBy, setOrderBy] = React.useState('priority');
+
+    const handleRequestSort = (event, property) => {
+        const isAsc = orderBy === property && order === 'asc';
+        setOrder(isAsc ? 'desc' : 'asc');
+        setOrderBy(property);
+      };
+
+    const { courses, courseError, mutateCourses } = useCourses({
+        firstPage: `${props.canvasUrl}/api/v1/courses?enrollment_type=teacher&access_token=`,
+        canvasUrl: props.canvasUrl,
+        apiKey: props.apiKey
+    })
+
+    const { queue, queueError, mutateQueue } = useQueue({
+        canvasUrl: props.canvasUrl,
+        apiKey: props.apiKey,
+        courses: courses,
+    })
+
+    if (!props.canvasUrl || !props.apiKey) return 'Authorization Required'
+
+    if (courseError) return 'course error';
+    if (Object.keys(courses).length === 0) return 'loading courses';
+
+    if (queueError) return 'queue error';
+    if (Object.keys(queue).length === 0) return 'loading queue';
+
+    // for debugging
+    if (courses) console.log('courses:', courses)
+    if (queue) console.log('queue:', queue)
+
     return(
-      <React.Fragment>
-        <Table variant='dark' striped bordered hover responsive>
-          <thead>
-            <tr>
-              <th>Status</th>
-              <th>Priority</th>
-              <th>Course</th>
-              <th>Assignment</th>
-              <th>Submitted</th>
-            </tr>
-          </thead>
-          <tbody>
-            { this.props.queue.map((submission) => this.getTr(submission)) }
-          </tbody>
-        </Table>
-      </React.Fragment>
+        <Paper>
+            <TableContainer>
+                <Table>
+                    <CustomTableHead
+                    classes={classes}
+                    order={order}
+                    orderBy={orderBy}
+                    onRequestSort={handleRequestSort}
+                    />
+                    <TableBody>
+                        {stableSort(stableSort(Object.values(queue), getComparator('asc', 'submittedAt')), getComparator(order, orderBy))
+                        .map((submission, index) => {
+                            const labelId = `enhanced-table-checkbox-${index}`;
+                            return(
+                                <TableRow
+                                    hover
+                                    key={submission.id}
+                                >
+                                    <TableCell padding='checkbox'><Checkbox /></TableCell>
+                                    <TableCell>{submission.priority}</TableCell>
+                                    <TableCell><Link color='inherit' href={submission.userUrl} target='_blank' rel='noopener'>{courses[submission.courseId].name}</Link></TableCell>
+                                    <TableCell><Link color='inherit' href={submission.submissionUrl} target='_blank' rel='noopener'>{submission.assignmentName}</Link></TableCell>
+                                    <TableCell className={styles.timestamp}>{submission.submittedAt.toLocaleString()}</TableCell>
+                                </TableRow>
+                            )
+                        })}
+                    </TableBody>
+                </Table>
+            </TableContainer>
+        </Paper>
     )
-  }
 }
