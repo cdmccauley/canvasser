@@ -33,6 +33,12 @@ export default function Authorize(props) {
     useEffect(() => {
         // isMount indicates useEffect is being called on first component render
         if (!isMount) if (!keyError && !urlError) {
+            setUrlValid(false)
+            setUrlError(false)
+            setUrlHelperText(null)
+            setKeyValid(false)
+            setKeyError(false)
+            setKeyHelperText(null)
             // TODO: more parsing/validation
             let url = urlRef.current.value.trim();
             if (url && url.endsWith('/')) url = url.slice(0, url.length - 1)

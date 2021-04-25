@@ -9,6 +9,7 @@ import {
   CssBaseline
 } from '@material-ui/core';
 
+import Nav from '../components/nav.js'
 import Authorize from '../components/authorize.js'
 import User from '../components/user.js'
 import Queue from '../components/queue.js'
@@ -59,22 +60,31 @@ export default function Index() {
         <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
       </Head>
       <CssBaseline />
-      <Container>
-        <Authorize 
+      <Authorize 
           authorized={ authorized }
           setAuthorized={ setAuthorized }
-          apiKey={ apiKey }
-          setApiKey={ setApiKey }
           canvasUrl={ canvasUrl }
           setCanvasUrl={ setCanvasUrl }
+          apiKey={ apiKey }
+          setApiKey={ setApiKey }
+      />
+      <Nav 
+          authorized={ authorized }
+          setAuthorized={ setAuthorized }
+          canvasUrl={ canvasUrl }
+          setCanvasUrl={ setCanvasUrl }
+          apiKey={ apiKey }
+          setApiKey={ setApiKey }
+          darkMode={ darkMode }
+          setDarkMode={ setDarkMode }
+      />
+      <Container>
+        {authorized ? (
+          <Queue 
+            canvasUrl={ canvasUrl }
+            apiKey={ apiKey }
           />
-        <User 
-          canvasUrl={ canvasUrl }
-          apiKey={ apiKey } />
-        <Switch checked={darkMode} onChange={() => setDarkMode(!darkMode)} />
-        <Queue 
-          canvasUrl={ canvasUrl }
-          apiKey={ apiKey } />
+        ) : <></>}
       </Container>
     </ThemeProvider>
   )

@@ -49,8 +49,8 @@ function stableSort(array, comparator) {
 // id should be name of object property for sorting
 const sortCells = [
     { id: 'priority', label: 'Priority' },
-    { id: 'courseName', label: 'Course' },
     { id: 'assignmentName', label: 'Assignment' },
+    { id: 'courseName', label: 'Course' },
     { id: 'submittedAt', label: 'Submitted' },
   ];
 
@@ -159,8 +159,8 @@ export default function Queue(props) {
                                 >
                                     <TableCell padding='checkbox'><Checkbox /></TableCell>
                                     <TableCell>{submission.priority}</TableCell>
-                                    <TableCell><Link color='inherit' href={submission.userUrl} target='_blank' rel='noopener'>{courses[submission.courseId].name}</Link></TableCell>
                                     <TableCell><Link color='inherit' href={submission.submissionUrl} target='_blank' rel='noopener'>{submission.assignmentName}</Link></TableCell>
+                                    <TableCell><Link color='inherit' href={submission.userUrl} target='_blank' rel='noopener'>{courses[submission.courseId].name}</Link></TableCell>
                                     <TableCell className={styles.timestamp}>{submission.submittedAt.toLocaleString()}</TableCell>
                                 </TableRow>
                             )
