@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
 import useCourses from '../data/use-courses';
 import useQueue from '../data/use-queue';
@@ -12,7 +12,6 @@ import {
     Tooltip,
     IconButton,
     Menu,
-    MenuItem,
     ListItem,
     TextField,
     TableContainer,
@@ -129,6 +128,7 @@ export default function Queue(props) {
     const [orderBy, setOrderBy] = React.useState('priority');
     const [anchorEl, setAnchorEl] = useState(null);
     const [filter, setFilter] = useState(null)
+    const [timer, setTimer] = useState(null)
     const open = Boolean(anchorEl);
 
     const handleMenu = (event) => {
@@ -161,6 +161,7 @@ export default function Queue(props) {
         courses: courses,
     })
 
+    if (!props.canvasUrl && timer || !props.apiKey && timer) clearInterval(timer)
     if (!props.canvasUrl || !props.apiKey) return 'Authorization Required'
 
     if (courseError) return 'course error';
@@ -168,6 +169,8 @@ export default function Queue(props) {
 
     if (queueError) return 'queue error';
     if (Object.keys(queue).length === 0) return 'loading queue';
+
+    if (!timer && mutateQueue) setTimer(setInterval(() => mutateQueue(), 20 * 1000))
 
     // for debugging
     if (courses) console.log('courses:', courses)
