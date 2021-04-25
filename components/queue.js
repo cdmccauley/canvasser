@@ -4,8 +4,17 @@ import useCourses from '../data/use-courses';
 import useQueue from '../data/use-queue';
 
 import { makeStyles } from '@material-ui/core/styles';
+
 import {
     Paper,
+    Toolbar,
+    Typography,
+    Tooltip,
+    IconButton,
+    Menu,
+    MenuItem,
+    ListItem,
+    TextField,
     TableContainer,
     Table,
     TableHead,
@@ -17,6 +26,17 @@ import {
     Link,
 
 } from '@material-ui/core';
+
+import {
+    FormatLineSpacingRounded,
+    NewReleasesRounded,
+    PriorityHighRounded,
+    FilterListRounded,
+    RestoreRounded,
+    SyncRounded,
+    SyncDisabledRounded,
+
+} from '@material-ui/icons';
 
 import styles from '../styles/Queue.module.css';
 
@@ -107,12 +127,27 @@ export default function Queue(props) {
     const classes = useStyles();
     const [order, setOrder] = React.useState('asc');
     const [orderBy, setOrderBy] = React.useState('priority');
+    const [anchorEl, setAnchorEl] = useState(null);
+    const [filter, setFilter] = useState(null)
+    const open = Boolean(anchorEl);
+
+    const handleMenu = (event) => {
+            setAnchorEl(event.currentTarget);
+        };
+
+    const handleMenuClose = () => {
+            setAnchorEl(null);
+        };
+
+    const handleFilter = (event) => {
+            setFilter(event.target.value)
+        }
 
     const handleRequestSort = (event, property) => {
-        const isAsc = orderBy === property && order === 'asc';
-        setOrder(isAsc ? 'desc' : 'asc');
-        setOrderBy(property);
-      };
+            const isAsc = orderBy === property && order === 'asc';
+            setOrder(isAsc ? 'desc' : 'asc');
+            setOrderBy(property);
+        };
 
     const { courses, courseError, mutateCourses } = useCourses({
         firstPage: `${props.canvasUrl}/api/v1/courses?enrollment_type=teacher&access_token=`,
@@ -140,6 +175,55 @@ export default function Queue(props) {
 
     return(
         <Paper>
+            <Toolbar >
+                <Typography style={{flex: '1 1 100%'}}>
+                    {Object.keys(queue).length} Submissions
+                </Typography>
+                <Tooltip title='Priorities' placement='top'>
+                    <IconButton disabled >
+                        <FormatLineSpacingRounded />
+                    </IconButton>
+                </Tooltip>
+                <Tooltip title='Refresh Timer' placement='top'>
+                    <IconButton disabled >
+                        <RestoreRounded />
+                    </IconButton>
+                </Tooltip>
+                <Tooltip title='Filter' placement='top'>
+                    <IconButton edge={'end'} onClick={handleMenu}>
+                        <FilterListRounded />
+                    </IconButton>
+                </Tooltip>
+                <Menu 
+                    anchorEl={anchorEl}
+                    getContentAnchorEl={null}
+                    anchorOrigin={{
+                        vertical: 'top',
+                        horizontal: 'left',
+                    }}
+                    keepMounted
+                    transformOrigin={{
+                        vertical: 'top',
+                        horizontal: 'right',
+                    }}
+                    open={open}
+                    onClose={handleMenuClose}
+                >
+                    <ListItem>
+                    <TextField 
+                        variant='outlined'
+                        label='Filter'
+                        InputProps={{
+                            color: 'secondary'
+                        }}
+                        InputLabelProps={{
+                            color: 'secondary'
+                        }}
+                        onChange={handleFilter}
+                    />
+                    </ListItem>
+                </Menu>
+            </Toolbar>
             <TableContainer>
                 <Table>
                     <CustomTableHead
@@ -149,7 +233,7 @@ export default function Queue(props) {
                     onRequestSort={handleRequestSort}
                     />
                     <TableBody>
-                        {stableSort(stableSort(Object.values(queue), getComparator('asc', 'submittedAt')), getComparator(order, orderBy))
+                        {stableSort(stableSort( filter ? Object.values(queue).filter((submission) => `${submission.assignmentName} ${courses[submission.courseId].name}`.toLowerCase().includes(filter.toLowerCase())) : Object.values(queue) , getComparator('asc', 'submittedAt')), getComparator(order, orderBy))
                         .map((submission, index) => {
                             const labelId = `enhanced-table-checkbox-${index}`;
                             return(
