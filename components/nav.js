@@ -13,6 +13,11 @@ import {
 
 } from '@material-ui/core';
 
+import {
+    Brightness4Rounded,
+    Brightness7Rounded,
+} from '@material-ui/icons';
+
 import { makeStyles } from '@material-ui/core/styles';
 
 import User from '../components/user.js'
@@ -84,7 +89,11 @@ export default function Nav(props) {
                 <Typography variant="h6" className={classes.title}>
                     Canvasser
                 </Typography>
-                <Switch checked={props.darkMode} onChange={() => props.setDarkMode(!props.darkMode)} />
+                <IconButton 
+                    onClick={() => props.setDarkMode(!props.darkMode)}
+                >
+                    {props.darkMode ? <Brightness7Rounded /> : <Brightness4Rounded style={{ color: 'white' }}/>}
+                </IconButton>
                 <IconButton 
                     edge={'end'}
                     size={'small'}
@@ -110,7 +119,7 @@ export default function Nav(props) {
                     open={open}
                     onClose={handleMenuClose}
                 >
-                    { user ? <ListItem>{user.name}</ListItem> : null }
+                    { user ? <ListItem dense divider><Typography>{user.name}</Typography></ListItem> : null }
                     { props.canvasUrl ? <MenuItem onClick={handleUrl}>Canvas URL</MenuItem> : null }
                     { props.apiKey ? <MenuItem onClick={handleKey}>API Key</MenuItem> : null }
                     <MenuItem onClick={handleRevoke}>Revoke Authorization</MenuItem>
