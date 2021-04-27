@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 
 import useCourses from '../data/use-courses';
+import useIReserve from '../data/use-i-reserve';
 import useQueue from '../data/use-queue';
 
 import { makeStyles } from '@material-ui/core/styles';
@@ -128,7 +129,8 @@ export default function Queue(props) {
     const [orderBy, setOrderBy] = React.useState('priority');
     const [anchorEl, setAnchorEl] = useState(null);
     const [filter, setFilter] = useState(null)
-    const [timer, setTimer] = useState(null)
+    // const [timer, setTimer] = useState(null)
+    // const [reserved, setReserved] = useState([])
     const open = Boolean(anchorEl);
 
     const handleMenu = (event) => {
@@ -150,47 +152,57 @@ export default function Queue(props) {
         };
 
     const { courses, courseError, mutateCourses } = useCourses({
-        firstPage: `${props.canvasUrl}/api/v1/courses?enrollment_type=teacher&access_token=`,
         canvasUrl: props.canvasUrl,
         apiKey: props.apiKey
     })
+    
+    const { iReserve, iReserveError, mutateIReserve } = useIReserve({
+        canvasUrl: props.canvasUrl
+    });
 
     const { queue, queueError, mutateQueue } = useQueue({
         canvasUrl: props.canvasUrl,
         apiKey: props.apiKey,
         courses: courses,
+        reserve: iReserve
     })
 
-    if (!props.canvasUrl && timer || !props.apiKey && timer) clearInterval(timer)
     if (!props.canvasUrl || !props.apiKey) return 'Authorization Required'
 
     if (courseError) return 'course error';
-    if (Object.keys(courses).length === 0) return 'loading courses';
+    if (Object.keys(courses).length === 0) return 'Loading Courses';
 
     if (queueError) return 'queue error';
-    if (Object.keys(queue).length === 0) return 'loading queue';
-
-    if (!timer && mutateQueue) setTimer(setInterval(() => mutateQueue(), 20 * 1000))
+    if (Object.keys(queue).length === 0) return 'Loading Queue';
 
     // for debugging
     if (courses) console.log('courses:', courses)
+    if (iReserve) console.log('iReserve:', iReserve)
     if (queue) console.log('queue:', queue)
+
+    if (queue && iReserve && iReserve.length > 0) Object.values(queue).map((submission) => {
+        submission.status = iReserve.includes(submission.submissionUrl) ? 'reserved' : 'unreserved';
+    })
 
     return(
         <Paper>
             <Toolbar >
                 <Typography style={{flex: '1 1 100%'}}>
-                    {Object.keys(queue).length} Submissions
+                    {Object.keys(queue).length} Total Submissions
                 </Typography>
                 <Tooltip title='Priorities' placement='top'>
+                    <span>
                     <IconButton disabled >
                         <FormatLineSpacingRounded />
                     </IconButton>
+                    </span>
                 </Tooltip>
                 <Tooltip title='Refresh Timer' placement='top'>
+                    <span>
                     <IconButton disabled >
                         <RestoreRounded />
                     </IconButton>
+                    </span>
                 </Tooltip>
                 <Tooltip title='Filter' placement='top'>
                     <IconButton edge={'end'} onClick={handleMenu}>
@@ -227,7 +239,7 @@ export default function Queue(props) {
                     </ListItem>
                 </Menu>
             </Toolbar>
-            <TableContainer>
+            <TableContainer style={{marginBottom: '2em'}}>
                 <Table>
                     <CustomTableHead
                     classes={classes}
@@ -238,13 +250,12 @@ export default function Queue(props) {
                     <TableBody>
                         {stableSort(stableSort( filter ? Object.values(queue).filter((submission) => `${submission.assignmentName} ${courses[submission.courseId].name}`.toLowerCase().includes(filter.toLowerCase())) : Object.values(queue) , getComparator('asc', 'submittedAt')), getComparator(order, orderBy))
                         .map((submission, index) => {
-                            const labelId = `enhanced-table-checkbox-${index}`;
                             return(
                                 <TableRow
                                     hover
                                     key={submission.id}
                                 >
-                                    <TableCell padding='checkbox'><Checkbox /></TableCell>
+                                    <TableCell padding='checkbox'><Checkbox checked={submission.status === 'reserved' ? true : false}/></TableCell>
                                     <TableCell>{submission.priority}</TableCell>
                                     <TableCell><Link color='inherit' href={submission.submissionUrl} target='_blank' rel='noopener'>{submission.assignmentName}</Link></TableCell>
                                     <TableCell><Link color='inherit' href={submission.userUrl} target='_blank' rel='noopener'>{courses[submission.courseId].name}</Link></TableCell>

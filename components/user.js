@@ -17,7 +17,7 @@ export default function User(props) {
     if (!user) return <Avatar style={{height: 36, width: 36}}><AccountCircle style={{ fontSize: 36 }} /></Avatar>;
 
     // for debugging
-    if (user) console.log(user)
+    // if (user) console.log(user)
 
     return (
         <Avatar src={user.avatar_url} alt={user.name} style={{height: 36, width: 36, border: '2px solid white' }} />
