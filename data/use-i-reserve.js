@@ -4,18 +4,21 @@ import iReserveFetcher from "../libs/api-i-reserve.js";
 
 export default function useIReserve(props) {
     // console.log('/data.useIReserve()')
+    let iReserve = { 
+        reserved: [],
+        selfReserved: []
+    };
     if (props.canvasUrl.includes('davistech.instructure.com')) {
-        let iReserve = [];
         const { data, mutate, error } = useSWR('/api/i-reserve', iReserveFetcher, {
             refreshInterval: 30 * 1000, 
             revalidateOnFocus: false,
             refreshWhenHidden: true,
         });
 
-        // console.log('/data.useIReserve() data: ', data)
+        console.log('/data.useIReserve() data: ', data)
 
         if (data && data.length > 0) data.map((reservation) => {
-            iReserve.push(reservation._id)
+            reservation.grader && reservation.grader.includes(props.user.name) ? iReserve.selfReserved.push(reservation._id) : iReserve.reserved.push(reservation._id);
         })
 
         const iReserveLoading = !data && !error;
@@ -31,7 +34,7 @@ export default function useIReserve(props) {
         return {
             iReserveLoading: false,
             iReserveError: false,
-            iReserve: [],
+            iReserve: iReserve,
             mutateIReserve: null // this may cause an issue
         }
     }

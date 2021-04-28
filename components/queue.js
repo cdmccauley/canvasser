@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react'
 
+import useUser from "../data/use-user";
 import useCourses from '../data/use-courses';
 import useIReserve from '../data/use-i-reserve';
 import useQueue from '../data/use-queue';
 
 import { makeStyles } from '@material-ui/core/styles';
+
+import Submission from '../components/submission'
 
 import {
     Paper,
@@ -129,6 +132,7 @@ export default function Queue(props) {
     const [orderBy, setOrderBy] = React.useState('priority');
     const [anchorEl, setAnchorEl] = useState(null);
     const [filter, setFilter] = useState(null)
+    // const [checked, setChecked] = useState(false)
     // const [timer, setTimer] = useState(null)
     // const [reserved, setReserved] = useState([])
     const open = Boolean(anchorEl);
@@ -151,13 +155,28 @@ export default function Queue(props) {
             setOrderBy(property);
         };
 
+    const handleReserveRequest = (event) => {
+        console.log(event.target.checked)
+        // queue[event.target.id].status = queue[event.target.id].status === 'unreserved' && queue[event.target.id].status !== 'reserved' ? 'self-reserved' : 'unreserved'
+        if (queue[event.target.id].status === 'unreserved') {
+            queue[event.target.id].status = 'self-reserved'
+        } else if (queue[event.target.id].status === 'self-reserved') {
+            queue[event.target.id].status = 'unreserved'
+        }
+        // setChecked(event.target.checked)
+        console.log(event.target.checked)
+    }
+
     const { courses, courseError, mutateCourses } = useCourses({
         canvasUrl: props.canvasUrl,
         apiKey: props.apiKey
     })
+
+    const { user, errored, mutate } = useUser(props.canvasUrl && props.apiKey ? `${props.canvasUrl}/api/v1/users/self?access_token=${props.apiKey}` : null);
     
     const { iReserve, iReserveError, mutateIReserve } = useIReserve({
-        canvasUrl: props.canvasUrl
+        canvasUrl: props.canvasUrl,
+        user: user
     });
 
     const { queue, queueError, mutateQueue } = useQueue({
@@ -180,9 +199,29 @@ export default function Queue(props) {
     if (iReserve) console.log('iReserve:', iReserve)
     if (queue) console.log('queue:', queue)
 
-    if (queue && iReserve && iReserve.length > 0) Object.values(queue).map((submission) => {
-        submission.status = iReserve.includes(submission.submissionUrl) ? 'reserved' : 'unreserved';
+    if (queue && iReserve && Object.keys(iReserve).length > 0) Object.values(queue).map((submission) => {
+        // submission.status = iReserve.reserved.includes(submission.submissionUrl) ? 'reserved' : iReserve.selfReserved.includes(submission.submissionUrl) ? 'self-reserved' : 'unreserved';
+        if (iReserve.reserved.includes(submission.submissionUrl)) {
+            submission.status = 'reserved'
+        } else if (iReserve.selfReserved.includes(submission.submissionUrl)) {
+            submission.status = 'self-reserved'
+            iReserve.selfReserved.splice(iReserve.selfReserved.indexOf(submission), 1)
+        } else {
+            submission.status = 'unreserved'
+        }
     })
+
+    if (iReserve && iReserve.selfReserved.length > 0) fetch('/api/i-reserve', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            action: 'unreserve',
+            items: iReserve.selfReserved
+        })
+    })
+    .catch((error) => console.log('unreserve error: ', error))
 
     return(
         <Paper>
@@ -251,16 +290,26 @@ export default function Queue(props) {
                         {stableSort(stableSort( filter ? Object.values(queue).filter((submission) => `${submission.assignmentName} ${courses[submission.courseId].name}`.toLowerCase().includes(filter.toLowerCase())) : Object.values(queue) , getComparator('asc', 'submittedAt')), getComparator(order, orderBy))
                         .map((submission, index) => {
                             return(
-                                <TableRow
-                                    hover
-                                    key={submission.id}
-                                >
-                                    <TableCell padding='checkbox'><Checkbox checked={submission.status === 'reserved' ? true : false}/></TableCell>
-                                    <TableCell>{submission.priority}</TableCell>
-                                    <TableCell><Link color='inherit' href={submission.submissionUrl} target='_blank' rel='noopener'>{submission.assignmentName}</Link></TableCell>
-                                    <TableCell><Link color='inherit' href={submission.userUrl} target='_blank' rel='noopener'>{courses[submission.courseId].name}</Link></TableCell>
-                                    <TableCell className={styles.timestamp}>{submission.submittedAt.toLocaleString()}</TableCell>
-                                </TableRow>
+                                <Submission 
+                                    submission={submission}
+                                />
+                                // <TableRow
+                                //     hover
+                                //     key={submission.id}
+                                // >
+                                //     <TableCell padding='checkbox'>
+                                //         <Checkbox
+                                //             id={submission.id}
+                                //             onChange={handleReserveRequest}
+                                //             checked={submission.status === 'self-reserved' ? true : false} 
+                                //             indeterminate={submission.status === 'reserved' ? true : false}
+                                //         />
+                                //     </TableCell>
+                                //     <TableCell>{submission.priority}</TableCell>
+                                //     <TableCell><Link color='inherit' href={submission.submissionUrl} target='_blank' rel='noopener'>{submission.assignmentName}</Link></TableCell>
+                                //     <TableCell><Link color='inherit' href={submission.userUrl} target='_blank' rel='noopener'>{courses[submission.courseId].name}</Link></TableCell>
+                                //     <TableCell className={styles.timestamp}>{submission.submittedAt.toLocaleString()}</TableCell>
+                                // </TableRow>
                             )
                         })}
                     </TableBody>

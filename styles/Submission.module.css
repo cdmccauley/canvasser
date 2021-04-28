@@ -1,0 +1,9 @@
+.timestamp {
+    min-width: 190px
+}
+
+@media only screen and (max-width: 768px) {
+    .timestamp {
+        min-width: auto;
+    }
+}

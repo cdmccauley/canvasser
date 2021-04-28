@@ -7,6 +7,7 @@ export default async function handler(req, res) {
         await client.connect();
         const database = client.db(process.env.MONGO_DB);
         const collection = database.collection(process.env.MONGO_COLLECTION)
+        // if post...
         iReserve = await collection.find().toArray()
     } catch (e) {
         console.log('/api/i-reserve.handler() exception: ', e)
