@@ -6,13 +6,13 @@ export default function useUser(url) {
     // console.log('useUser:', url)
     const { data, mutate, error } = useSWR(url, userFetcher);
 
-    const loading = !data && !error;
-    const errored = error && error.status === 403;
+    const userLoading = !data && !error;
+    const userError = error && error.status === 403;
 
     return {
-        loading,
-        errored,
+        userLoading,
+        userError,
         user: data,
-        mutate
+        mutateUser: mutate
     };
 }

@@ -8,10 +8,11 @@ export default async function handler(req, res) {
         const database = client.db(process.env.MONGO_DB);
         const collection = database.collection(process.env.MONGO_COLLECTION)
         iReserve = await collection.find().toArray()
-        console.log('/api/i-reserve.handler() iReserve: ', iReserve)
+        console.log('/api/i-reserve.handler() iReserve:', iReserve)
         if (req.method === 'POST') {
             if (req.body.action === 'unreserve') {
-                if (req.body.items[req.body.items.length - 1].includes('davistech.instructure.com')) {
+                console.log('/api/i-reserve.handler() unreserving:', req.body.items[req.body.items.length - 1])
+                if (req.body.items[req.body.items.length - 1].includes(process.env.I_KEY)) {
                     await collection.deleteOne({ _id: req.body.items.pop()})
                     if (req.body.items.length > 0) fetch('/api/i-reserve', {
                         method: 'POST',
@@ -25,7 +26,8 @@ export default async function handler(req, res) {
                     })
                 }
             } else if (req.body.action === 'reserve') {
-                if (req.body._id.includes('davistech.instructure.com')) {
+                console.log('/api/i-reserve.handler() reserving:', req.body._id)
+                if (req.body._id.includes(process.env.I_KEY)) {
                     await collection.insertOne({
                         _id: req.body._id,
                         grader: req.body.grader,
@@ -34,7 +36,6 @@ export default async function handler(req, res) {
                 }
             }
         }
-        
     } catch (e) {
         console.log('/api/i-reserve.handler() exception: ', e)
         // TODO: if post send error status

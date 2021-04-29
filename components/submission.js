@@ -10,7 +10,6 @@ import {
 import styles from '../styles/Submission.module.css';
 
 export default function Submission(props) {
-    // const [submission, setSubmission] = useState(props.submission)
     const [checked, setChecked] = useState(props.submission.status === 'self-reserved' ? true : false)
 
     const handleReserveRequest = (event) => {
@@ -48,17 +47,12 @@ export default function Submission(props) {
             }
             setChecked(event.target.checked)
         }
-            // if (event.target.dataset.indeterminate === 'false') setChecked(event.target.checked)
     }
 
     return(
-        <TableRow
-            hover
-            key={props.submission.id}
-        >
+        <TableRow hover>
             <TableCell padding='checkbox'>
                 <Checkbox
-                    id={props.submission.id}
                     onChange={handleReserveRequest}
                     checked={checked} 
                     indeterminate={props.submission.status === 'reserved' ? true : false}

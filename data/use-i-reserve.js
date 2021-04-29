@@ -15,8 +15,6 @@ export default function useIReserve(props) {
             refreshWhenHidden: true,
         });
 
-        console.log('/data.useIReserve() data: ', data)
-
         if (data && data.length > 0) data.map((reservation) => {
             reservation.grader && reservation.grader.includes(props.user.name) ? iReserve.selfReserved.push(reservation._id) : iReserve.reserved.push(reservation._id);
         })
@@ -35,7 +33,7 @@ export default function useIReserve(props) {
             iReserveLoading: false,
             iReserveError: false,
             iReserve: iReserve,
-            mutateIReserve: null // this may cause an issue
+            mutateIReserve: null
         }
     }
 }

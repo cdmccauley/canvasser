@@ -1,11 +1,9 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 
 import useUser from "../data/use-user";
 import useCourses from '../data/use-courses';
 import useIReserve from '../data/use-i-reserve';
 import useQueue from '../data/use-queue';
-
-import { makeStyles } from '@material-ui/core/styles';
 
 import Submission from '../components/submission'
 
@@ -25,31 +23,26 @@ import {
     TableBody,
     TableRow,
     TableCell,
-    Checkbox,
-    Link,
-
 } from '@material-ui/core';
 
+/*/
+ *  icons that may be used:
+ *  NewReleasesRounded,
+ *  PriorityHighRounded,
+ *  SyncRounded,
+ *  SyncDisabledRounded,
+/*/
 import {
     FormatLineSpacingRounded,
-    NewReleasesRounded,
-    PriorityHighRounded,
     FilterListRounded,
     RestoreRounded,
-    SyncRounded,
-    SyncDisabledRounded,
-
 } from '@material-ui/icons';
 
-import styles from '../styles/Queue.module.css';
+import { makeStyles } from '@material-ui/core/styles';
 
 function descendingComparator(a, b, orderBy) {
-    if (b[orderBy] < a[orderBy]) {
-        return -1;
-    }
-    if (b[orderBy] > a[orderBy]) {
-        return 1;
-    }
+    if (b[orderBy] < a[orderBy]) return -1;
+    if (b[orderBy] > a[orderBy]) return 1;
     return 0;
 }
 
@@ -98,11 +91,9 @@ function CustomTableHead(props) {
                             onClick={createSortHandler(sortCell.id)}
                         >
                             {sortCell.label}
-                            {orderBy === sortCell.id ? (
-                                <span className={classes.visuallyHidden}>
-                                    {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
-                                </span>
-                            ) : null}
+                            {orderBy === sortCell.id 
+                                ? (<span className={classes.visuallyHidden}>{order === 'desc' ? 'sorted descending' : 'sorted ascending'}</span>)
+                                : null}
                         </TableSortLabel>
                     </TableCell>
                 ))}
@@ -132,9 +123,6 @@ export default function Queue(props) {
     const [orderBy, setOrderBy] = React.useState('priority');
     const [anchorEl, setAnchorEl] = useState(null);
     const [filter, setFilter] = useState(null)
-    // const [checked, setChecked] = useState(false)
-    // const [timer, setTimer] = useState(null)
-    // const [reserved, setReserved] = useState([])
     const open = Boolean(anchorEl);
 
     const handleMenu = (event) => {
@@ -155,24 +143,12 @@ export default function Queue(props) {
             setOrderBy(property);
         };
 
-    const handleReserveRequest = (event) => {
-        console.log(event.target.checked)
-        // queue[event.target.id].status = queue[event.target.id].status === 'unreserved' && queue[event.target.id].status !== 'reserved' ? 'self-reserved' : 'unreserved'
-        if (queue[event.target.id].status === 'unreserved') {
-            queue[event.target.id].status = 'self-reserved'
-        } else if (queue[event.target.id].status === 'self-reserved') {
-            queue[event.target.id].status = 'unreserved'
-        }
-        // setChecked(event.target.checked)
-        console.log(event.target.checked)
-    }
-
     const { courses, courseError, mutateCourses } = useCourses({
         canvasUrl: props.canvasUrl,
         apiKey: props.apiKey
     })
 
-    const { user, errored, mutate } = useUser(props.canvasUrl && props.apiKey ? `${props.canvasUrl}/api/v1/users/self?access_token=${props.apiKey}` : null);
+    const { user, userError, mutateUser } = useUser(props.canvasUrl && props.apiKey ? `${props.canvasUrl}/api/v1/users/self?access_token=${props.apiKey}` : null);
     
     const { iReserve, iReserveError, mutateIReserve } = useIReserve({
         canvasUrl: props.canvasUrl,
@@ -188,19 +164,21 @@ export default function Queue(props) {
 
     if (!props.canvasUrl || !props.apiKey) return 'Authorization Required'
 
-    if (courseError) return 'course error';
+    if(userError) return 'Error Loading User Information';
+    if(!user) return 'Loading User Information'
+
+    if (courseError) return 'Error Loading Courses';
     if (Object.keys(courses).length === 0) return 'Loading Courses';
 
-    if (queueError) return 'queue error';
-    if (Object.keys(queue).length === 0) return 'Loading Queue';
+    if (queueError) return 'Error Loading Submissions';
+    if (Object.keys(queue).length === 0) return 'Loading Submissions';
 
-    // for debugging
-    if (courses) console.log('courses:', courses)
-    if (iReserve) console.log('iReserve:', iReserve)
-    if (queue) console.log('queue:', queue)
+    // debugging
+    // if (courses) console.log('courses:', courses)
+    // if (iReserve) console.log('iReserve:', iReserve)
+    // if (queue) console.log('queue:', queue)
 
     if (queue && iReserve && Object.keys(iReserve).length > 0) Object.values(queue).map((submission) => {
-        // submission.status = iReserve.reserved.includes(submission.submissionUrl) ? 'reserved' : iReserve.selfReserved.includes(submission.submissionUrl) ? 'self-reserved' : 'unreserved';
         if (iReserve.reserved.includes(submission.submissionUrl)) {
             submission.status = 'reserved'
         } else if (iReserve.selfReserved.includes(submission.submissionUrl)) {
@@ -287,32 +265,13 @@ export default function Queue(props) {
                     onRequestSort={handleRequestSort}
                     />
                     <TableBody>
-                        {stableSort(stableSort( filter ? Object.values(queue).filter((submission) => `${submission.assignmentName} ${courses[submission.courseId].name}`.toLowerCase().includes(filter.toLowerCase())) : Object.values(queue) , getComparator('asc', 'submittedAt')), getComparator(order, orderBy))
-                        .map((submission, index) => {
-                            return(
-                                <Submission 
-                                    user={user}
-                                    submission={submission}
-                                />
-                                // <TableRow
-                                //     hover
-                                //     key={submission.id}
-                                // >
-                                //     <TableCell padding='checkbox'>
-                                //         <Checkbox
-                                //             id={submission.id}
-                                //             onChange={handleReserveRequest}
-                                //             checked={submission.status === 'self-reserved' ? true : false} 
-                                //             indeterminate={submission.status === 'reserved' ? true : false}
-                                //         />
-                                //     </TableCell>
-                                //     <TableCell>{submission.priority}</TableCell>
-                                //     <TableCell><Link color='inherit' href={submission.submissionUrl} target='_blank' rel='noopener'>{submission.assignmentName}</Link></TableCell>
-                                //     <TableCell><Link color='inherit' href={submission.userUrl} target='_blank' rel='noopener'>{courses[submission.courseId].name}</Link></TableCell>
-                                //     <TableCell className={styles.timestamp}>{submission.submittedAt.toLocaleString()}</TableCell>
-                                // </TableRow>
-                            )
-                        })}
+                        {stableSort(stableSort(filter ? Object.values(queue).filter((submission) => `${submission.assignmentName} ${courses[submission.courseId].name}`.toLowerCase().includes(filter.toLowerCase())) : Object.values(queue) , getComparator('asc', 'submittedAt')), getComparator(order, orderBy))
+                        .map((submission) => 
+                            <Submission 
+                                key={submission.id}
+                                user={user}
+                                submission={submission}
+                            />)}
                     </TableBody>
                 </Table>
             </TableContainer>
