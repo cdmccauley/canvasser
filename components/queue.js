@@ -1,122 +1,280 @@
-import React from 'react';
+import React, { useState } from 'react'
 
-import Table from 'react-bootstrap/Table';
+import useUser from "../data/use-user";
+import useCourses from '../data/use-courses';
+import useIReserve from '../data/use-i-reserve';
+import useQueue from '../data/use-queue';
 
-import { Circle, DashCircleFill, CheckCircleFill, CheckCircle, XCircle } from 'react-bootstrap-icons';
+import Submission from '../components/submission'
 
-import styles from './Queue.module.css'
+import {
+    Paper,
+    Toolbar,
+    Typography,
+    Tooltip,
+    IconButton,
+    Menu,
+    ListItem,
+    TextField,
+    TableContainer,
+    Table,
+    TableHead,
+    TableSortLabel,
+    TableBody,
+    TableRow,
+    TableCell,
+} from '@material-ui/core';
 
-export default class Queue extends React.Component {
-  UNRESERVED = 'unreserved';
-  UNRESERVED_HOVER = 'unreserved-hover';
-  SELF_RESERVED = 'self-reserved';
-  SELF_RESERVED_HOVER = 'self-reserved-hover';
-  RESERVED = 'other-reserved';
+/*/
+ *  icons that may be used:
+ *  NewReleasesRounded,
+ *  PriorityHighRounded,
+ *  SyncRounded,
+ *  SyncDisabledRounded,
+/*/
+import {
+    FormatLineSpacingRounded,
+    FilterListRounded,
+    RestoreRounded,
+} from '@material-ui/icons';
 
-  constructor(props) {
-    super(props);
-  }
+import { makeStyles } from '@material-ui/core/styles';
 
-  setStatus = (id, status) => {
-    this.props.onSetStatus(id, status)
-  }
+function descendingComparator(a, b, orderBy) {
+    if (b[orderBy] < a[orderBy]) return -1;
+    if (b[orderBy] > a[orderBy]) return 1;
+    return 0;
+}
 
-  handleEnter = (id, classes) => {
-    if (!classes.contains(this.RESERVED)) {
-      let status;
-      if (classes.contains(this.UNRESERVED)) {
-        status = this.UNRESERVED_HOVER;
-      } else if (classes.contains(this.SELF_RESERVED)) {
-        status = this.SELF_RESERVED_HOVER;
-      }
-      this.setStatus(id, status)
-    }
-  }
+function getComparator(order, orderBy) {
+    return order === 'desc'
+        ? (a, b) => descendingComparator(a, b, orderBy)
+        : (a, b) => -descendingComparator(a, b, orderBy);
+}
 
-  handleLeave = (id, classes) => {
-    if (!classes.contains(this.RESERVED)) {
-      let status = '';
-      if (classes.contains(this.UNRESERVED_HOVER)) {
-        status = this.UNRESERVED;
-      } else if (classes.contains(this.SELF_RESERVED_HOVER)) {
-        status = this.SELF_RESERVED
-      }
-      if (!status == '') {
-        this.setStatus(id, status)
-      }
-    }
-  }
+function stableSort(array, comparator) {
+    const stabilizedThis = array.map((el, index) => [el, index]);
+    stabilizedThis.sort((a, b) => {
+        const order = comparator(a[0], b[0]);
+        if (order !== 0) return order;
+        return a[1] - b[1];
+    });
+    return stabilizedThis.map((el) => el[0]);
+}
 
-  handleClick = (id, classes) => {
-    if (!classes.contains(this.RESERVED)) {
-      if (classes.contains(this.UNRESERVED_HOVER)) {
-        Object.assign(document.createElement('a'), {
-          target: '_blank',
-          href: this.props.queue.find((sub) => { return id == sub.id}).url,
-        }).click()
-        this.setStatus(id, this.SELF_RESERVED)
-      } else {
-        this.setStatus(id, this.UNRESERVED_HOVER)
-      }
-    } else {
-      //TODO: alert or popover
-      console.log('submission is reserved')
-    }
-  }
+// id should be name of object property for sorting
+const sortCells = [
+    { id: 'priority', label: 'Priority' },
+    { id: 'assignmentName', label: 'Assignment' },
+    { id: 'courseName', label: 'Course' },
+    { id: 'submittedAt', label: 'Submitted' },
+  ];
 
-  getStatusIcon = (id, status) => {
-    switch (status) {
-      case this.UNRESERVED:
-        return <Circle />
-      case this.UNRESERVED_HOVER:
-        return <CheckCircle />
-      case this.SELF_RESERVED:
-        return <CheckCircleFill />
-      case this.SELF_RESERVED_HOVER:
-        return <XCircle />
-      case this.RESERVED:
-        return <DashCircleFill />
-      default:
-        return 'e'
-    }
-  }
+function CustomTableHead(props) {
+    const { order, orderBy, onRequestSort, classes } = props;
+    const createSortHandler = (property) => (event) => {
+        onRequestSort(event, property);
+    };
 
-  //TODO: make unreserved status td's a link to the assignment
-  getTr = (submission) => {
-    let bg = submission.priority == 1 ? {backgroundColor: '#7c2020'} : {};
-    return(
-      <tr style={bg} key={ submission.id }>
-        <td id={ submission.id } className={`text-center ${submission.status}`} 
-          onMouseEnter={ (e) => this.handleEnter(e.target.id, e.target.classList) }
-          onMouseLeave={ (e) => this.handleLeave(e.target.id, e.target.classList) }
-          onMouseDownCapture={ (e) => this.handleClick(e.currentTarget.id, e.currentTarget.classList) } >
-          { this.getStatusIcon(submission.id, submission.status) }</td>
-        <td>{ submission.priority }</td>
-        <td><a href={ submission.courseUrl } target='_blank'>{ submission.courseName }</a></td>
-        <td><a href={ submission.url } target='_blank'>{ submission.name }</a></td>
-        <td className={styles.timestamp}>{ submission.submittedAt.toLocaleString() }</td>
-      </tr>
+    return (
+        <TableHead>
+            <TableRow>
+                <TableCell>Status</TableCell>
+                {sortCells.map((sortCell) => (
+                    <TableCell
+                        key={sortCell.id}
+                        sortDirection={orderBy === sortCell.id ? order : false}
+                    >
+                        <TableSortLabel
+                            active={orderBy === sortCell.id}
+                            direction={orderBy === sortCell.id ? order : 'asc'}
+                            onClick={createSortHandler(sortCell.id)}
+                        >
+                            {sortCell.label}
+                            {orderBy === sortCell.id 
+                                ? (<span className={classes.visuallyHidden}>{order === 'desc' ? 'sorted descending' : 'sorted ascending'}</span>)
+                                : null}
+                        </TableSortLabel>
+                    </TableCell>
+                ))}
+            </TableRow>
+        </TableHead>
     )
-  }
+}
 
-  render() {
+const useStyles = makeStyles((theme) => ({
+            visuallyHidden: {
+            border: 0,
+            clip: 'rect(0 0 0 0)',
+            height: 1,
+            margin: -1,
+            overflow: 'hidden',
+            padding: 0,
+            position: 'absolute',
+            top: 20,
+            width: 1,
+        },
+    }));
+
+export default function Queue(props) {
+    // console.log('queue props: ', props)
+    const classes = useStyles();
+    const [order, setOrder] = React.useState('asc');
+    const [orderBy, setOrderBy] = React.useState('priority');
+    const [anchorEl, setAnchorEl] = useState(null);
+    const [filter, setFilter] = useState(null)
+    const open = Boolean(anchorEl);
+
+    const handleMenu = (event) => {
+            setAnchorEl(event.currentTarget);
+        };
+
+    const handleMenuClose = () => {
+            setAnchorEl(null);
+        };
+
+    const handleFilter = (event) => {
+            setFilter(event.target.value)
+        }
+
+    const handleRequestSort = (event, property) => {
+            const isAsc = orderBy === property && order === 'asc';
+            setOrder(isAsc ? 'desc' : 'asc');
+            setOrderBy(property);
+        };
+
+    const { courses, courseError, mutateCourses } = useCourses({
+        canvasUrl: props.canvasUrl,
+        apiKey: props.apiKey
+    })
+
+    const { user, userError, mutateUser } = useUser(props.canvasUrl && props.apiKey ? `${props.canvasUrl}/api/v1/users/self?access_token=${props.apiKey}` : null);
+    
+    const { iReserve, iReserveError, mutateIReserve } = useIReserve({
+        canvasUrl: props.canvasUrl,
+        user: user
+    });
+
+    const { queue, queueError, mutateQueue } = useQueue({
+        canvasUrl: props.canvasUrl,
+        apiKey: props.apiKey,
+        courses: courses,
+        reserve: iReserve
+    })
+
+    if (!props.canvasUrl || !props.apiKey) return 'Authorization Required'
+
+    if(userError) return 'Error Loading User Information';
+    if(!user) return 'Loading User Information'
+
+    if (courseError) return 'Error Loading Courses';
+    if (Object.keys(courses).length === 0) return 'Loading Courses';
+
+    if (queueError) return 'Error Loading Submissions';
+    if (Object.keys(queue).length === 0) return 'Loading Submissions';
+
+    // debugging
+    // if (courses) console.log('courses:', courses)
+    // if (iReserve) console.log('iReserve:', iReserve)
+    // if (queue) console.log('queue:', queue)
+
+    if (queue && iReserve && Object.keys(iReserve).length > 0) Object.values(queue).map((submission) => {
+        if (iReserve.reserved.includes(submission.submissionUrl)) {
+            submission.status = 'reserved'
+        } else if (iReserve.selfReserved.includes(submission.submissionUrl)) {
+            submission.status = 'self-reserved'
+            iReserve.selfReserved.splice(iReserve.selfReserved.indexOf(submission), 1)
+        } else {
+            submission.status = 'unreserved'
+        }
+    })
+
+    if (iReserve && iReserve.selfReserved.length > 0) fetch('/api/i-reserve', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                action: 'unreserve',
+                items: iReserve.selfReserved
+            })
+        })
+        .catch((error) => console.log('unreserve error: ', error))
+
     return(
-      <React.Fragment>
-        <Table variant='dark' striped bordered hover responsive>
-          <thead>
-            <tr>
-              <th>Status</th>
-              <th>Priority</th>
-              <th>Course</th>
-              <th>Assignment</th>
-              <th>Submitted</th>
-            </tr>
-          </thead>
-          <tbody>
-            { this.props.queue.map((submission) => this.getTr(submission)) }
-          </tbody>
-        </Table>
-      </React.Fragment>
+        <Paper>
+            <Toolbar >
+                <Typography style={{flex: '1 1 100%'}}>
+                    {Object.keys(queue).length} Total Submissions
+                </Typography>
+                <Tooltip title='Priorities' placement='top'>
+                    <span>
+                    <IconButton disabled >
+                        <FormatLineSpacingRounded />
+                    </IconButton>
+                    </span>
+                </Tooltip>
+                <Tooltip title='Refresh Timer' placement='top'>
+                    <span>
+                    <IconButton disabled >
+                        <RestoreRounded />
+                    </IconButton>
+                    </span>
+                </Tooltip>
+                <Tooltip title='Filter' placement='top'>
+                    <IconButton edge={'end'} onClick={handleMenu}>
+                        <FilterListRounded />
+                    </IconButton>
+                </Tooltip>
+                <Menu 
+                    anchorEl={anchorEl}
+                    getContentAnchorEl={null}
+                    anchorOrigin={{
+                        vertical: 'top',
+                        horizontal: 'left',
+                    }}
+                    keepMounted
+                    transformOrigin={{
+                        vertical: 'top',
+                        horizontal: 'right',
+                    }}
+                    open={open}
+                    onClose={handleMenuClose}
+                >
+                    <ListItem>
+                    <TextField 
+                        variant='outlined'
+                        label='Filter'
+                        InputProps={{
+                            color: 'secondary'
+                        }}
+                        InputLabelProps={{
+                            color: 'secondary'
+                        }}
+                        onChange={handleFilter}
+                    />
+                    </ListItem>
+                </Menu>
+            </Toolbar>
+            <TableContainer style={{marginBottom: '2em'}}>
+                <Table>
+                    <CustomTableHead
+                    classes={classes}
+                    order={order}
+                    orderBy={orderBy}
+                    onRequestSort={handleRequestSort}
+                    />
+                    <TableBody>
+                        {stableSort(stableSort(filter ? Object.values(queue).filter((submission) => `${submission.assignmentName} ${courses[submission.courseId].name}`.toLowerCase().includes(filter.toLowerCase())) : Object.values(queue) , getComparator('asc', 'submittedAt')), getComparator(order, orderBy))
+                        .map((submission) => 
+                            <Submission 
+                                key={submission.id}
+                                user={user}
+                                submission={submission}
+                            />)}
+                    </TableBody>
+                </Table>
+            </TableContainer>
+        </Paper>
     )
-  }
 }

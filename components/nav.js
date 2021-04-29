@@ -1,36 +1,136 @@
-import React from 'react';
+import React, { useState } from 'react';
 
-import Navbar from 'react-bootstrap/Navbar'
-import Image from 'react-bootstrap/Image'
-import Dropdown from 'react-bootstrap/Dropdown'
+import {
+    AppBar,
+    Toolbar,
+    Typography,
+    Switch,
+    IconButton,
+    Menu,
+    ListItem,
+    MenuItem,
+    Snackbar,
 
-import { PersonCircle } from 'react-bootstrap-icons'
+} from '@material-ui/core';
 
-export default class Nav extends React.Component {
+import {
+    Brightness4Rounded,
+    Brightness7Rounded,
+} from '@material-ui/icons';
 
-  constructor(props) {
-    super(props);
-  }
+import { makeStyles } from '@material-ui/core/styles';
 
-  render() {
+import User from '../components/user.js'
+
+import useUser from "../data/use-user";
+
+const useStyles = makeStyles((theme) => ({
+        root: {
+            flexGrow: 1,
+        },
+        menuButton: {
+            marginRight: theme.spacing(2),
+        },
+        title: {
+            flexGrow: 1,
+        },
+        bar: {
+            marginBottom: theme.spacing(3),
+        }
+    }));
+
+export default function Nav(props) {
+    const classes = useStyles();
+    const [anchorEl, setAnchorEl] = useState(null);
+    const [snackbarOpen, setSnackbarOpen] = useState(false)
+    const [snackbarText, setSnackbarText] = useState('')
+    const open = Boolean(anchorEl);
+
+    const { user, errored, mutate } = useUser(props.canvasUrl && props.apiKey ? `${props.canvasUrl}/api/v1/users/self?access_token=${props.apiKey}` : null);
+
+    const handleMenu = (event) => {
+            setAnchorEl(event.currentTarget);
+        };
+    
+    const handleMenuClose = () => {
+            setAnchorEl(null);
+        };
+
+    const handleUrl = () => {
+        setSnackbarText(props.canvasUrl)
+        setSnackbarOpen(true)
+    }
+
+    const handleKey = () => {
+        setSnackbarText(props.apiKey)
+        setSnackbarOpen(true)
+    }
+
+    const handleSnackbarClose = () => {
+        setSnackbarOpen(false)
+    }
+
+    const handleRevoke = () => {
+        setAnchorEl(null);
+        props.setCanvasUrl()
+        props.setApiKey()
+        props.setAuthorized(false)
+        localStorage.removeItem('canvasUrl')
+        localStorage.removeItem('apiKey')
+    }
+
+    /*/
+     * TODO: add name, canvasUrl, and apiKey to menu
+     * TODO: add dialog to change canvasUrl and apiKey when click in menu
+    /*/
     return(
-      <Navbar variant='dark'>
-        <Navbar.Brand>Canvasser</Navbar.Brand>
-        <Navbar.Toggle />
-        <Navbar.Collapse className='justify-content-end'>
-          <Dropdown drop={ 'left' }>
-            <Dropdown.Toggle >
-              { this.props.loggedIn ? 
-              <Image style={{width: '32px', height: '32px', border: '1px solid #000'}} src={ this.props.avatarUrl } roundedCircle /> : 
-              <PersonCircle size={ 32 }/> }
-            </Dropdown.Toggle>
-            <Dropdown.Menu>
-              <Dropdown.Item eventKey='1' onClick={ this.props.onLoginToggle}>{ this.props.loggedIn ? 'Logout' : 'Login' }</Dropdown.Item>
-            </Dropdown.Menu>
-          </Dropdown>
-        </Navbar.Collapse>
-      </Navbar>
+        <AppBar className={classes.bar} position='static'>
+            <Toolbar>
+                <Typography variant="h6" className={classes.title}>
+                    Canvasser
+                </Typography>
+                <IconButton 
+                    onClick={() => props.setDarkMode(!props.darkMode)}
+                >
+                    {props.darkMode ? <Brightness7Rounded /> : <Brightness4Rounded style={{ color: 'white' }}/>}
+                </IconButton>
+                <IconButton 
+                    edge={'end'}
+                    size={'small'}
+                    onClick={handleMenu}
+                >
+                    <User 
+                        canvasUrl={props.canvasUrl}
+                        apiKey={props.apiKey}
+                    />
+                </IconButton>
+                <Menu 
+                    anchorEl={anchorEl}
+                    getContentAnchorEl={null}
+                    anchorOrigin={{
+                        vertical: 'top',
+                        horizontal: 'left',
+                    }}
+                    keepMounted
+                    transformOrigin={{
+                        vertical: 'top',
+                        horizontal: 'right',
+                    }}
+                    open={open}
+                    onClose={handleMenuClose}
+                >
+                    { user ? <ListItem dense divider><Typography>{user.name}</Typography></ListItem> : null }
+                    { props.canvasUrl ? <MenuItem onClick={handleUrl}>Canvas URL</MenuItem> : null }
+                    { props.apiKey ? <MenuItem onClick={handleKey}>API Key</MenuItem> : null }
+                    <MenuItem onClick={handleRevoke}>Revoke Authorization</MenuItem>
+                </Menu>
+                <Snackbar
+                    anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
+                    open={snackbarOpen}
+                    onClose={handleSnackbarClose}
+                    message={snackbarText}
+                />
+            </Toolbar>
+        </AppBar>
     )
-  }
-
 }
