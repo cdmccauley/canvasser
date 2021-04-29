@@ -212,16 +212,16 @@ export default function Queue(props) {
     })
 
     if (iReserve && iReserve.selfReserved.length > 0) fetch('/api/i-reserve', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            action: 'unreserve',
-            items: iReserve.selfReserved
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                action: 'unreserve',
+                items: iReserve.selfReserved
+            })
         })
-    })
-    .catch((error) => console.log('unreserve error: ', error))
+        .catch((error) => console.log('unreserve error: ', error))
 
     return(
         <Paper>
@@ -291,6 +291,7 @@ export default function Queue(props) {
                         .map((submission, index) => {
                             return(
                                 <Submission 
+                                    user={user}
                                     submission={submission}
                                 />
                                 // <TableRow

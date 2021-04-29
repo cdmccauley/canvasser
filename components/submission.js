@@ -10,20 +10,45 @@ import {
 import styles from '../styles/Submission.module.css';
 
 export default function Submission(props) {
-
+    // const [submission, setSubmission] = useState(props.submission)
     const [checked, setChecked] = useState(props.submission.status === 'self-reserved' ? true : false)
 
     const handleReserveRequest = (event) => {
-        // queue[event.target.id].status = queue[event.target.id].status === 'unreserved' && queue[event.target.id].status !== 'reserved' ? 'self-reserved' : 'unreserved'
-        // if (queue[event.target.id].status === 'unreserved') {
-        //     queue[event.target.id].status = 'self-reserved'
-        // } else if (queue[event.target.id].status === 'self-reserved') {
-        //     queue[event.target.id].status = 'unreserved'
-        // }
-        // setChecked(event.target.checked)
-        // console.log(event.target.dataset.indeterminate)
-        if (event.target.dataset.indeterminate === 'false') setChecked(event.target.checked)
-        
+        if (event.target.dataset.indeterminate === 'false') {
+            if (event.target.checked) {
+                Object.assign(document.createElement('a'), {
+                    target: '_blank',
+                    href: props.submission.submissionUrl
+                }).click()
+                fetch('/api/i-reserve', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: 'reserve',
+                        _id: props.submission.submissionUrl,
+                        grader: `*${props.user.name}`,
+                        reserved_at: new Date().toLocaleString().replace(',', '')
+                    })
+                })
+                .catch((error) => console.log('/components/submission.handleReserveRequest error: ', error))
+            } else {
+                fetch('/api/i-reserve', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: 'unreserve',
+                        items: [props.submission.submissionUrl]
+                    })
+                })
+                .catch((error) => console.log('/components/submission.handleReserveRequest error: ', error))
+            }
+            setChecked(event.target.checked)
+        }
+            // if (event.target.dataset.indeterminate === 'false') setChecked(event.target.checked)
     }
 
     return(
