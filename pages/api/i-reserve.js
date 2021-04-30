@@ -14,7 +14,7 @@ export default async function handler(req, res) {
                 console.log('/api/i-reserve.handler() unreserving:', req.body.items[req.body.items.length - 1])
                 if (req.body.items[req.body.items.length - 1].includes(process.env.I_KEY)) {
                     await collection.deleteOne({ _id: req.body.items.pop()})
-                    if (req.body.items.length > 0) fetch('/api/i-reserve', {
+                    if (req.body.items.length > 0) fetch('https://canvasser.vercel.app/api/i-reserve', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
