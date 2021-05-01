@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
 import useUser from "../data/use-user";
 import useCourses from '../data/use-courses';
@@ -125,11 +125,14 @@ export default function Queue(props) {
     const [orderBy, setOrderBy] = React.useState('priority');
     const [anchorEl, setAnchorEl] = useState(null);
     const [filter, setFilter] = useState(null)
-    const [priorities, setPriorities] = useState([
-            ['meeting', 'cisco', 'course completion', 'final'],
-            ['pacific', ' ace '],
-            ['level 3']
-        ])
+    const [priorities, setPriorities] = useState([])
+
+    useEffect(() => {
+            // if (localStorage.getItem('canvasUrl')) setCanvasUrl(localStorage.getItem('canvasUrl'))
+            // if (localStorage.getItem('apiKey')) setApiKey(localStorage.getItem('apiKey'))
+            // if (canvasUrl && apiKey) setAuthorized(true)
+            if (localStorage.getItem('priorities')) setPriorities(JSON.parse(localStorage.getItem('priorities')))
+        }, [])
 
     const open = Boolean(anchorEl);
 

@@ -65,7 +65,6 @@ export default function Priorities(props) {
     const open = Boolean(priorityAnchorEl);
 
     const handlePriorityMenu = (event) => {
-            console.log('handlePriorityMenu()')
             setPriorityAnchorEl(event.currentTarget);
         };
 
@@ -78,6 +77,7 @@ export default function Priorities(props) {
             stage[level - 1].push(props.priorities[level][index])
             stage[level].splice(index, 1)
             if (stage[level].length === 0) stage.splice(level, 1)
+            localStorage.setItem('priorities', JSON.stringify([...stage]))
             props.setPriorities([...stage])
         }
 
@@ -86,6 +86,7 @@ export default function Priorities(props) {
             level === stage.length - 1 ? stage.push([props.priorities[level][index]]) : stage[level + 1].push(props.priorities[level][index])
             stage[level].splice(index, 1)
             if (stage[level].length === 0) stage.splice(level, 1)
+            localStorage.setItem('priorities', JSON.stringify([...stage]))
             props.setPriorities([...stage])
         }
 
@@ -93,6 +94,7 @@ export default function Priorities(props) {
             let stage = [...props.priorities]
             stage[level].splice(index, 1)
             if (stage[level].length === 0) stage.splice(level, 1)
+            localStorage.setItem('priorities', JSON.stringify([...stage]))
             props.setPriorities([...stage])
         }
 
@@ -100,6 +102,7 @@ export default function Priorities(props) {
             if (newPriority) {
                 let stage = [...props.priorities]
                 stage.length > 0 ? stage[stage.length - 1].push(newPriority) : stage.push([newPriority])
+                localStorage.setItem('priorities', JSON.stringify([...stage]))
                 props.setPriorities([...stage])
                 setNewPriority('')
             }
