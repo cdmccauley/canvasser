@@ -16,7 +16,7 @@ const getPriority = (submission, priorities) => {
     let priority = priorities.length + 1;
     priorities.map((level) => {
         level.map((name) => {
-            if (submission.assignment.name.toLowerCase().includes(name.toLowerCase())) priority = priorities.indexOf(level) + 1;
+            if (submission.toLowerCase().includes(name.toLowerCase())) priority = priorities.indexOf(level) + 1;
         })
     })
     return priority;
@@ -31,10 +31,10 @@ export default function useQueue(props) {
     //     reserve.push(reservation._id)
     // })
 
-    const [priorities, setPriorities] = useState([
-            ['meeting', 'cisco', 'course completion'],
-            ['pacific', ' ace ']
-        ])
+    // const [priorities, setPriorities] = useState([
+    //         ['meeting', 'cisco', 'course completion'],
+    //         ['pacific', ' ace ']
+    //     ])
 
     const { data, error, mutate, size, setSize, isValidating } = useSWRInfinite(getKey, queueFetcher, {
         initialSize: courses.length, 
@@ -59,7 +59,7 @@ export default function useQueue(props) {
                 userUrl: `${canvasUrl}/courses/${submission.assignment.course_id}/grades/${submission.user_id}`,
                 submittedAt: new Date(submission.submitted_at),
                 submissionUrl: `${canvasUrl}/courses/${submission.assignment.course_id}/gradebook/speed_grader?assignment_id=${submission.assignment_id}&student_id=${submission.user_id}`,
-                priority: getPriority(submission, priorities),
+                priority: getPriority(`${props.courses[submission.assignment.course_id].name} ${submission.assignment.name}`, props.priorities),
                 // status: reserve.includes(`${canvasUrl}/courses/${submission.assignment.course_id}/gradebook/speed_grader?assignment_id=${submission.assignment_id}&student_id=${submission.user_id}`) ? 'reserved' : 'unreserved'
             }
         })

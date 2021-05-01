@@ -5,6 +5,7 @@ import useCourses from '../data/use-courses';
 import useIReserve from '../data/use-i-reserve';
 import useQueue from '../data/use-queue';
 
+import Priorities from '../components/priorities'
 import Submission from '../components/submission'
 
 import {
@@ -119,10 +120,17 @@ const useStyles = makeStyles((theme) => ({
 export default function Queue(props) {
     // console.log('queue props: ', props)
     const classes = useStyles();
+    
     const [order, setOrder] = React.useState('asc');
     const [orderBy, setOrderBy] = React.useState('priority');
     const [anchorEl, setAnchorEl] = useState(null);
     const [filter, setFilter] = useState(null)
+    const [priorities, setPriorities] = useState([
+            ['meeting', 'cisco', 'course completion', 'final'],
+            ['pacific', ' ace '],
+            ['level 3']
+        ])
+
     const open = Boolean(anchorEl);
 
     const handleMenu = (event) => {
@@ -159,7 +167,8 @@ export default function Queue(props) {
         canvasUrl: props.canvasUrl,
         apiKey: props.apiKey,
         courses: courses,
-        reserve: iReserve
+        reserve: iReserve,
+        priorities: priorities
     })
 
     if (!props.canvasUrl || !props.apiKey) return 'Authorization Required'
@@ -207,13 +216,17 @@ export default function Queue(props) {
                 <Typography style={{flex: '1 1 100%'}}>
                     {Object.keys(queue).length} Total Submissions
                 </Typography>
-                <Tooltip title='Priorities' placement='top'>
+                {/* <Tooltip title='Priorities' placement='top'>
                     <span>
                     <IconButton disabled >
                         <FormatLineSpacingRounded />
                     </IconButton>
                     </span>
-                </Tooltip>
+                </Tooltip> */}
+                <Priorities 
+                    priorities={priorities}
+                    setPriorities={setPriorities}
+                />
                 <Tooltip title='Refresh Timer' placement='top'>
                     <span>
                     <IconButton disabled >
@@ -243,6 +256,7 @@ export default function Queue(props) {
                 >
                     <ListItem>
                     <TextField 
+                        size={'small'} 
                         variant='outlined'
                         label='Filter'
                         InputProps={{
