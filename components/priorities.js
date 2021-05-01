@@ -60,7 +60,7 @@ const useStyles = makeStyles((theme) => ({
 export default function Priorities(props) {
     const classes = useStyles();
     const [priorityAnchorEl, setPriorityAnchorEl] = useState(null);
-    const [newPriority, setNewPriority] = useState(null)
+    const [newPriority, setNewPriority] = useState(undefined)
 
     const open = Boolean(priorityAnchorEl);
 
@@ -80,6 +80,7 @@ export default function Priorities(props) {
             if (stage[level].length === 0) stage.splice(level, 1)
             props.setPriorities([...stage])
         }
+
     const handleDownwardAction = (level, index) => {
             let stage = [...props.priorities]
             level === stage.length - 1 ? stage.push([props.priorities[level][index]]) : stage[level + 1].push(props.priorities[level][index])
@@ -87,6 +88,7 @@ export default function Priorities(props) {
             if (stage[level].length === 0) stage.splice(level, 1)
             props.setPriorities([...stage])
         }
+
     const handleRemoveAction = (level, index) => {
             let stage = [...props.priorities]
             stage[level].splice(index, 1)
@@ -101,6 +103,12 @@ export default function Priorities(props) {
                 props.setPriorities([...stage])
                 setNewPriority('')
             }
+        }
+
+    const handlePriorityChange = (event, level, index) => {
+            let stage = [...props.priorities]
+            stage[level][index] = event.target.value
+            props.setPriorities([...stage])
         }
 
     return(
@@ -128,7 +136,7 @@ export default function Priorities(props) {
             >
                 {props.priorities.map((level) => level.map((priority) => 
                     <ListItem divider={level.indexOf(priority) === level.length - 1 && props.priorities.indexOf(level) < props.priorities.length - 1 ? true : false}>
-                        <InputBase fullWidth value={priority} onChange={(event) => console.log(event.target.value)}/>
+                        <InputBase fullWidth value={priority} onChange={(event) => handlePriorityChange(event, props.priorities.indexOf(level), level.indexOf(priority))}/>
                         {props.priorities.indexOf(level) !== 0 ? (
                             <IconButton edge={'end'} size={'small'} onClick={() => handleUpwardAction(props.priorities.indexOf(level), level.indexOf(priority))}>
                                 <ArrowUpwardRounded />
