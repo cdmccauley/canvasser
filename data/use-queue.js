@@ -39,7 +39,7 @@ export default function useQueue(props) {
     const { data, error, mutate, size, setSize, isValidating } = useSWRInfinite(getKey, queueFetcher, {
         initialSize: courses.length, 
         revalidateAll: true, 
-        refreshInterval: 60 * 1000, 
+        refreshInterval: props.refreshRate * 1000, 
         revalidateOnFocus: false,
         refreshWhenHidden: true,
     });

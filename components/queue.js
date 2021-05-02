@@ -6,6 +6,7 @@ import useIReserve from '../data/use-i-reserve';
 import useQueue from '../data/use-queue';
 
 import Priorities from '../components/priorities'
+import Refresh from '../components/refresh'
 import Submission from '../components/submission'
 
 import {
@@ -126,12 +127,11 @@ export default function Queue(props) {
     const [anchorEl, setAnchorEl] = useState(null);
     const [filter, setFilter] = useState(null)
     const [priorities, setPriorities] = useState([])
+    const [refreshRate, setRefreshRate] = useState(60)
 
     useEffect(() => {
-            // if (localStorage.getItem('canvasUrl')) setCanvasUrl(localStorage.getItem('canvasUrl'))
-            // if (localStorage.getItem('apiKey')) setApiKey(localStorage.getItem('apiKey'))
-            // if (canvasUrl && apiKey) setAuthorized(true)
             if (localStorage.getItem('priorities')) setPriorities(JSON.parse(localStorage.getItem('priorities')))
+            if (localStorage.getItem('refreshRate')) setRefreshRate(localStorage.getItem('refreshRate'))
         }, [])
 
     const open = Boolean(anchorEl);
@@ -163,7 +163,8 @@ export default function Queue(props) {
     
     const { iReserve, iReserveError, mutateIReserve } = useIReserve({
         canvasUrl: props.canvasUrl,
-        user: user
+        user: user,
+        refreshRate: refreshRate
     });
 
     const { queue, queueError, mutateQueue } = useQueue({
@@ -171,7 +172,8 @@ export default function Queue(props) {
         apiKey: props.apiKey,
         courses: courses,
         reserve: iReserve,
-        priorities: priorities
+        priorities: priorities,
+        refreshRate: refreshRate
     })
 
     if (!props.canvasUrl || !props.apiKey) return 'Authorization Required'
@@ -219,24 +221,14 @@ export default function Queue(props) {
                 <Typography style={{flex: '1 1 100%'}}>
                     {Object.keys(queue).length} Total Submissions
                 </Typography>
-                {/* <Tooltip title='Priorities' placement='top'>
-                    <span>
-                    <IconButton disabled >
-                        <FormatLineSpacingRounded />
-                    </IconButton>
-                    </span>
-                </Tooltip> */}
                 <Priorities 
                     priorities={priorities}
                     setPriorities={setPriorities}
                 />
-                <Tooltip title='Refresh Timer' placement='top'>
-                    <span>
-                    <IconButton disabled >
-                        <RestoreRounded />
-                    </IconButton>
-                    </span>
-                </Tooltip>
+                <Refresh
+                    refreshRate={refreshRate}
+                    setRefreshRate={setRefreshRate}
+                />
                 <Tooltip title='Filter' placement='top'>
                     <IconButton edge={'end'} onClick={handleMenu}>
                         <FilterListRounded />

@@ -1,61 +1,29 @@
 import React, { useState } from 'react'
 
 import {
-    Paper,
-    Toolbar,
-    Typography,
     Tooltip,
     IconButton,
     Menu,
-    Grid,
     ListItem,
     InputBase,
-    Button,
     TextField,
-    TableContainer,
-    Table,
-    TableHead,
-    TableSortLabel,
-    TableBody,
-    TableRow,
-    TableCell,
-
 } from '@material-ui/core';
 
 import {
     FormatLineSpacingRounded,
     CloseRounded,
-    MoreVert,
     ArrowDownwardRounded,
     ArrowUpwardRounded,
     AddRounded,
-    PermPhoneMsgSharp,
 } from '@material-ui/icons';
 
 import { makeStyles } from '@material-ui/core/styles';
 
 const useStyles = makeStyles((theme) => ({
-    grow: {
-        flexGrow: 1,
-    },
-    root: {
-        // padding: '2px 4px',
-        display: 'flex',
-        // alignItems: 'center',
-        // width: '90%',
-    },
-    input: {
-        // marginLeft: theme.spacing(1),
-        // flex: 1,
-    },
-    iconButton: {
-        // padding: 10,
-    },
-    divider: {
-        // height: 28,
-        // margin: 4,
-    },
-  }));
+        root: {
+                display: 'flex',
+            },
+    }));
 
 export default function Priorities(props) {
     const classes = useStyles();

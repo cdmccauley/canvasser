@@ -10,7 +10,7 @@ export default function useIReserve(props) {
     };
     if (props.canvasUrl.includes('davistech.instructure.com')) {
         const { data, mutate, error } = useSWR('/api/i-reserve', iReserveFetcher, {
-            refreshInterval: 30 * 1000, 
+            refreshInterval: props.refreshRate * 1000, 
             revalidateOnFocus: false,
             refreshWhenHidden: true,
         });
