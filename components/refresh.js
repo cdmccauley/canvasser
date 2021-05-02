@@ -28,8 +28,12 @@ export default function Refresh(props) {
         };
 
     const handleRefreshChange = (event) => {
-        props.setRefreshRate(event.target.value > 0 ? event.target.value : 0)
-        localStorage.setItem('refreshRate', event.target.value > 0 ? event.target.value : 0)
+        let rate = 60;
+        if (!isNaN(event.target.value.trim())) {
+            rate = parseFloat(event.target.value.trim()) > 0 ? parseFloat(event.target.value.trim()) : 0
+        }
+        props.setRefreshRate(rate)
+        localStorage.setItem('refreshRate', rate)
     }
 
     return (
