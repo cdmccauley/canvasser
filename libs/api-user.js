@@ -11,5 +11,6 @@ const userFetcher = async (url) => {
     })
     .then((res) => res.json())
     .then((data) => data.canvasData)
+    .catch((err) => console.log('userFetcher error:', err))
 };
 export default userFetcher

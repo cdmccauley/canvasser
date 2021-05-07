@@ -26,6 +26,6 @@ const coursesFetcher = async (url) => {
         }
         return resData
     })
-    .catch((err) => console.log(err));
+    .catch((err) => console.log('coursesFetcher error:', err));
 };
 export default coursesFetcher

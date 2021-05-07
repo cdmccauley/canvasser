@@ -24,6 +24,7 @@ export default async function handler(req, res) {
                             items: req.body.items
                         })
                     })
+                    .catch((err) => console.log('i-reserve error:', err))
                 }
             } else if (req.body.action === 'reserve') {
                 console.log('/api/i-reserve.handler() reserving:', req.body._id)
