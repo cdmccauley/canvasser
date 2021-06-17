@@ -21,6 +21,7 @@ export default function Index() {
   const [authorized, setAuthorized] = useState(false)
   const [canvasUrl, setCanvasUrl] = useState()
   const [apiKey, setApiKey] = useState()
+  const [subTotal, setSubTotal] = useState()
 
   useEffect(() => {
     if (localStorage.getItem('canvasUrl')) setCanvasUrl(localStorage.getItem('canvasUrl'))
@@ -55,7 +56,7 @@ export default function Index() {
     <ThemeProvider theme={theme}>
       <Head>
         <meta name="viewport" content="minimum-scale=1, initial-scale=1, width=device-width"/>
-        <title>Canvasser</title>
+        <title>Canvasser{subTotal ? ` (${subTotal})` : ''}</title>
         <link rel="icon" href="/favicon.ico" />
         <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
       </Head>
@@ -83,6 +84,8 @@ export default function Index() {
           <Queue 
             canvasUrl={ canvasUrl }
             apiKey={ apiKey }
+            subTotal={ subTotal }
+            setSubTotal={ setSubTotal }
           />
         ) : <></>}
       </Container>

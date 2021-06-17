@@ -215,11 +215,19 @@ export default function Queue(props) {
         })
         .catch((error) => console.log('unreserve error: ', error))
 
+    if (queue) {
+        if (filter) {
+            props.setSubTotal(Object.values(queue).filter((submission) => `${submission.assignmentName} ${courses[submission.courseId].name}`.toLowerCase().includes(filter.toLowerCase())).length)
+        } else {
+            props.setSubTotal(Object.keys(queue).length)
+        }
+    }
+
     return(
         <Paper>
             <Toolbar >
                 <Typography style={{flex: '1 1 100%'}}>
-                    {Object.keys(queue).length} Total Submissions
+                    {props.subTotal ? `${props.subTotal.toString()} Submissions` : ''}
                 </Typography>
                 <Priorities 
                     priorities={priorities}
