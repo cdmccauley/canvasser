@@ -14,7 +14,8 @@ const getKey = (pageIndex, previousPageData) => {
 
 const getPriority = (submission, priorities) => {
     let priority = priorities.length + 1;
-    priorities.map((level) => {
+    // create reversed copy to set priorities from lowest to highest
+    priorities.slice(0).reverse().map((level) => {
         level.map((name) => {
             if (submission.toLowerCase().includes(name.toLowerCase())) priority = priorities.indexOf(level) + 1;
         })
