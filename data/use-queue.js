@@ -9,6 +9,7 @@ let canvasUrl, apiKey, courses;
 
 const getKey = (pageIndex, previousPageData) => {
     if (pageIndex > courses.length) return null
+    if (previousPageData && previousPageData.next) return `${previousPageData.next}&access_token=${apiKey}`
     return `${canvasUrl}/api/v1/courses/${courses[pageIndex]}/students/submissions?${urlParameters}&access_token=${apiKey}`
 }
 

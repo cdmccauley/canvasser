@@ -1,3 +1,5 @@
+import parseLinkHeader from "../libs/parse-link-header.js";
+
 const queueFetcher = async (url) => {
     // console.log(`libs/api-queue.queueFetcher(${url})`)
     // let reserve = [];
@@ -7,6 +9,8 @@ const queueFetcher = async (url) => {
     //     .then((data) => console.log(data))
     //     .catch((error) => console.log(error))
     // }
+    let links;
+    let resData;
     return await fetch('/api/queue', {
         method: 'POST',
         headers: {
@@ -16,8 +20,18 @@ const queueFetcher = async (url) => {
             url: url
         })
     })
-    .then((res) => res.json())
-    .then((data) => data)
+    .then((res) => {
+        links = parseLinkHeader(res.headers.get('link'))
+        return res.json()
+    })
+    .then((data) => {
+        // console.log('api-queue data: ', data);
+        resData = data
+        if (links['next'] != undefined) {
+            resData.next = links['next']
+        }
+        return resData
+    })
     .catch((error) => console.log('libs/api-queue.queueFetcher() error:', error))
 }
 export default queueFetcher
