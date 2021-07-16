@@ -21,6 +21,16 @@ const queueFetcher = async (url) => {
         })
     })
     .then((res) => {
+        if (!res.ok) {
+            const error = new Error('An error occurred while fetching queue data.')
+            error.info = res.json()
+            error.status = res.status
+            throw error
+        } else {
+            return res
+        }
+    })
+    .then((res) => {
         links = parseLinkHeader(res.headers.get('link'))
         return res.json()
     })

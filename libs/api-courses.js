@@ -14,6 +14,16 @@ const coursesFetcher = async (url) => {
         })
     })
     .then((res) => {
+        if (!res.ok) {
+            const error = new Error('An error occurred while fetching course data.')
+            error.info = res.json()
+            error.status = res.status
+            throw error
+        } else {
+            return res
+        }
+    })
+    .then((res) => {
         // console.log('link headers: ', res.headers.get('link'))
         links = parseLinkHeader(res.headers.get('link'))
         // console.log('next: ', links['next']) // undefined if doesn't exist

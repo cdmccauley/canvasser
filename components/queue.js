@@ -128,6 +128,7 @@ export default function Queue(props) {
     const [filter, setFilter] = useState(null)
     const [priorities, setPriorities] = useState([])
     const [refreshRate, setRefreshRate] = useState(60)
+    const [count, setCount] = useState(0)
 
     useEffect(() => {
             if (localStorage.getItem('priorities')) setPriorities(JSON.parse(localStorage.getItem('priorities')))
