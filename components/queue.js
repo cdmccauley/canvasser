@@ -94,7 +94,9 @@ function CustomTableHead(props) {
                         >
                             {sortCell.label}
                             {orderBy === sortCell.id 
-                                ? (<span className={classes.visuallyHidden}>{order === 'desc' ? 'sorted descending' : 'sorted ascending'}</span>)
+                                ? (<span className={classes.visuallyHidden}>{order === 'desc' 
+                                ? 'sorted descending' 
+                                : 'sorted ascending'}</span>)
                                 : null}
                         </TableSortLabel>
                     </TableCell>

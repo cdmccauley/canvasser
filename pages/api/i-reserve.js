@@ -3,6 +3,7 @@ const { MongoClient } = require('mongodb');
 export default async function handler(req, res) {
     let iReserve = [];
     const client = new MongoClient(process.env.MONGO_CONNECTION, { useUnifiedTopology: true });
+    let excepted = false;
     try {
         await client.connect();
         const database = client.db(process.env.MONGO_DB);
@@ -38,10 +39,11 @@ export default async function handler(req, res) {
             }
         }
     } catch (e) {
+        excepted = true;
         console.log('/api/i-reserve.handler() exception: ', e)
-        // TODO: if post send error status
     } finally {
         await client.close();
+        if (excepted) res.status(504).send()
         if (req.method === 'GET') res.status(200).json(JSON.stringify({ iReserve }))
         if (req.method === 'POST') res.status(200).send()
     }
