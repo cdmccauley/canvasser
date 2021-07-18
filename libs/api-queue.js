@@ -42,6 +42,9 @@ const queueFetcher = async (url) => {
         }
         return resData
     })
-    .catch((error) => console.log('libs/api-queue.queueFetcher() error:', error))
+    .catch((error) => {
+        console.log('libs/api-queue.queueFetcher() error:', error)
+        throw err
+    })
 }
 export default queueFetcher

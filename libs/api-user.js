@@ -21,6 +21,9 @@ const userFetcher = async (url) => {
     })
     .then((res) => res.json())
     .then((data) => data.canvasData)
-    .catch((err) => console.log('userFetcher error:', err))
+    .catch((err) => {
+        console.log('libs/api-queue.userFetcher() error:', err)
+        throw err
+    })
 };
 export default userFetcher

@@ -15,12 +15,12 @@ export default function useIReserve(props) {
             refreshWhenHidden: true,
         });
 
-        if (data && data.length > 0) data.map((reservation) => {
+        if (props.user && data && data.length > 0) data.map((reservation) => {
             reservation.grader && reservation.grader.includes(props.user.name) ? iReserve.selfReserved.push(reservation._id) : iReserve.reserved.push(reservation._id);
         })
 
         const iReserveLoading = !data && !error;
-        const iReserveError = error && error.status === 403;
+        const iReserveError = error;
 
         return {
             iReserveLoading,

@@ -157,12 +157,13 @@ export default function Queue(props) {
             setOrderBy(property);
         };
 
+    const { user, userError, mutateUser } = useUser(props.canvasUrl && props.apiKey ? `${props.canvasUrl}/api/v1/users/self?access_token=${props.apiKey}` : null);
+
     const { courses, courseError, mutateCourses } = useCourses({
         canvasUrl: props.canvasUrl,
-        apiKey: props.apiKey
+        apiKey: props.apiKey,
+        user: user
     })
-
-    const { user, userError, mutateUser } = useUser(props.canvasUrl && props.apiKey ? `${props.canvasUrl}/api/v1/users/self?access_token=${props.apiKey}` : null);
     
     const { iReserve, iReserveError, mutateIReserve } = useIReserve({
         canvasUrl: props.canvasUrl,

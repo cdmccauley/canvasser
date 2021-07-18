@@ -14,5 +14,5 @@ export default async function handler(req, res) {
             canvasData
         }))
     })
-    .catch((err) => console.log(err));
+    .catch((err) => console.log('/api/queue.handler() error:', err));
 }

@@ -20,13 +20,11 @@ export default function useCourses(props) {
     apiKey = props.apiKey;
     
     const { data, error, mutate, size, setSize, isValidating } = useSWRInfinite(getKey, coursesFetcher, { initialSize: 10 });
-
     // const courses = data ? [].concat(...data.map((page) => page.canvasData)) : [];
     // const courses = data ? [].concat(...data.map((page) => page.canvasData.map((course) => { return { id: course.id, code: course.course_code, name: course.name } }))) : { };
     // const courses = data ? data.map((page) => page.canvasData.map((course) => { return { id: course.id, code: course.course_code, name: course.name } })) : { };
-    
     let courses = { };
-    if (data) data.map((page) => {
+    if (!error && data) data.map((page) => {
         page.canvasData.map((course) => {
             courses[course.id] = {
                 code: course.course_code,
@@ -36,7 +34,7 @@ export default function useCourses(props) {
     })
 
     const courseLoading = !data && !error;
-    const courseError = error && error.status === 403;
+    const courseError = error;
 
     if (courses.length === size * 10) setSize(size + 10)
 

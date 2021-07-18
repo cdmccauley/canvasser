@@ -7,7 +7,7 @@ export default function useUser(url) {
     const { data, mutate, error } = useSWR(url, userFetcher);
 
     const userLoading = !data && !error;
-    const userError = error && error.status === 403;
+    const userError = error;
 
     return {
         userLoading,

@@ -14,5 +14,7 @@ export default async function handler(req, res) {
         res.status(resStatus).json(JSON.stringify({
             canvasData
         }))
-    }).catch((err) => console.log(err));
+    }).catch((err) => {
+        console.log('/api/courses.handler() error:', err)
+    });
 }

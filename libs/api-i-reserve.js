@@ -13,6 +13,9 @@ const iReserveFetcher = async () => {
     })
     .then((res) => res.json())
     .then((data) => data.iReserve)
-    .catch((err) => console.log('iReserveFetcher error:', err))
+    .catch((err) => {
+        console.log('libs/api-queue.iReserveFetcher() error:', err)
+        throw err
+    })
 };
 export default iReserveFetcher

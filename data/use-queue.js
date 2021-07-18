@@ -68,7 +68,7 @@ export default function useQueue(props) {
     })
 
     const queueLoading = !data && !error;
-    const queueError = error && error.status === 403;
+    const queueError = error;
 
     return {
         queueLoading,

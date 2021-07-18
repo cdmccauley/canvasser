@@ -36,6 +36,9 @@ const coursesFetcher = async (url) => {
         }
         return resData
     })
-    .catch((err) => console.log('coursesFetcher error:', err));
+    .catch((err) => {
+        console.log('libs/api-queue.coursesFetcher() error:', err)
+        throw err
+    });
 };
 export default coursesFetcher
