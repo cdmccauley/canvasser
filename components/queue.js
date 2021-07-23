@@ -189,7 +189,10 @@ export default function Queue(props) {
     if (Object.keys(courses).length === 0) return 'Loading Courses';
 
     if (queueError) return 'Error Loading Submissions';
-    if (Object.keys(queue).length === 0) return 'Loading Submissions';
+    if (Object.keys(queue).length === 0) {
+        props.setSubTotal(0)
+        return 'Loading Submissions'
+    };
 
     // debugging
     // if (courses) console.log('courses:', courses)
