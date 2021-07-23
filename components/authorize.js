@@ -41,6 +41,7 @@ export default function Authorize(props) {
             setKeyHelperText(null)
             // TODO: more parsing/validation
             let url = urlRef.current.value.trim();
+            url = url.search(/^http[s]?\:\/\//) == -1 ? `https://${url}` : url;
             if (url && url.endsWith('/')) url = url.slice(0, url.length - 1)
             localStorage.setItem('canvasUrl', url);
             localStorage.setItem('apiKey', keyRef.current.value.trim());
