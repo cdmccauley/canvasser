@@ -295,6 +295,7 @@ export default function Queue(props) {
                                 key={submission.id}
                                 user={user}
                                 submission={submission}
+                                updateIReserve={mutateIReserve}
                             />)}
                     </TableBody>
                 </Table>

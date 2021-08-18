@@ -32,7 +32,11 @@ export default function Submission(props) {
                     })
                 })
                 .then((res) => {
-                    if (!res.ok) alert('Assignment is reserved for grading')
+                    if (!res.ok) {
+                        alert('Assignment is reserved for grading')
+                        setChecked(false)
+                        props.updateIReserve()
+                    }
                 })
                 .catch((error) => console.log('/components/submission.handleReserveRequest error: ', error))
             } else {
