@@ -31,6 +31,9 @@ export default function Submission(props) {
                         reserved_at: new Date().toLocaleString().replace(',', '')
                     })
                 })
+                .then((res) => {
+                    if (!res.ok) alert('Assignment is reserved for grading')
+                })
                 .catch((error) => console.log('/components/submission.handleReserveRequest error: ', error))
             } else {
                 fetch('/api/i-reserve', {
