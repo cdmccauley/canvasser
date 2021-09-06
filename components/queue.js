@@ -199,28 +199,34 @@ export default function Queue(props) {
     // if (iReserve) console.log('iReserve:', iReserve)
     // if (queue) console.log('queue:', queue)
 
-    if (queue && iReserve && Object.keys(iReserve).length > 0) Object.values(queue).map((submission) => {
-        if (iReserve.reserved.includes(submission.submissionUrl)) {
-            submission.status = 'reserved'
-        } else if (iReserve.selfReserved.includes(submission.submissionUrl)) {
-            submission.status = 'self-reserved'
-            iReserve.selfReserved.splice(iReserve.selfReserved.indexOf(submission), 1)
-        } else {
-            submission.status = 'unreserved'
-        }
-    })
-
-    if (iReserve && iReserve.selfReserved.length > 0) fetch('/api/i-reserve', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                action: 'unreserve',
-                items: iReserve.selfReserved
-            })
+    if (queue && iReserve && Object.keys(iReserve).length > 0) {
+        // set reservation statuses on each submission
+        Object.values(queue).map((submission) => {
+            if (iReserve.reserved.includes(submission.submissionUrl)) {
+                submission.status = 'reserved'
+            } else if (iReserve.selfReserved.includes(submission.submissionUrl)) {
+                submission.status = 'self-reserved'
+                // remove active self reservations to prepare for inactive to be removed
+                iReserve.selfReserved.splice(iReserve.selfReserved.indexOf(submission), 1)
+            } else {
+                submission.status = 'unreserved'
+            }
         })
-        .catch((error) => console.log('unreserve error: ', error))
+        // clear inactive self reservations from db
+        if (iReserve && iReserve.selfReserved.length > 0) {
+                fetch('/api/i-reserve', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    action: 'unreserve',
+                    items: iReserve.selfReserved
+                })
+            })
+            .catch((error) => console.log('unreserve error: ', error))
+        }
+    }    
 
     if (queue) {
         if (filter) {
