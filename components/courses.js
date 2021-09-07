@@ -34,6 +34,7 @@ function Course(props) {
         setChecked(event.target.checked)
         props.course.active = event.target.checked
         props.setActiveCourses(event.target.checked ? [...props.activeCourses, props.course.code] : [...props.activeCourses.filter((courseCode) => courseCode !== props.course.code)])
+        localStorage.setItem('activeCourses', event.target.checked ? [...props.activeCourses, props.course.code] : [...props.activeCourses.filter((courseCode) => courseCode !== props.course.code)])
     }
 
     return (
@@ -66,7 +67,12 @@ export default function Courses(props) {
             setCoursesAnchorEl(null);
         };
 
-    if (props.courses && !props.activeCourses) props.setActiveCourses(Array.from(Object.values(props.courses), (course) => course.code))
+    if (props.courses && !props.activeCourses) {
+        props.setActiveCourses(Array.from(Object.values(props.courses), (course) => course.code))
+        localStorage.setItem('activeCourses', Array.from(Object.values(props.courses), (course) => course.code))
+    }
+
+
     
     return(
         <React.Fragment>
