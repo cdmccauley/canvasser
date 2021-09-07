@@ -307,7 +307,7 @@ export default function Queue(props) {
                     onRequestSort={handleRequestSort}
                     />
                     <TableBody>
-                        {stableSort(stableSort(filter ? Object.values(queue).filter((submission) => `${submission.assignmentName} ${courses[submission.courseId].name}`.toLowerCase().includes(filter.toLowerCase())) : Object.values(queue) , getComparator('asc', 'submittedAt')), getComparator(order, orderBy))
+                        {stableSort(stableSort(filter ? Object.values(queue).filter((submission) => activeCourses.includes(courses[submission.courseId].code)).filter((submission) => `${submission.assignmentName} ${courses[submission.courseId].name}`.toLowerCase().includes(filter.toLowerCase())) : Object.values(queue).filter((submission) => activeCourses.includes(courses[submission.courseId].code)) , getComparator('asc', 'submittedAt')), getComparator(order, orderBy))
                         .map((submission) => 
                             <Submission 
                                 key={submission.id}
