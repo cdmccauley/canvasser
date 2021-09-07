@@ -14,21 +14,18 @@ const getKey = (pageIndex, previousPageData) => {
 }
 
 export default function useCourses(props) {
-    // console.log('useCourses:', props)
     firstPage = props.firstPage;
     canvasUrl = props.canvasUrl;
     apiKey = props.apiKey;
     
     const { data, error, mutate, size, setSize, isValidating } = useSWRInfinite(getKey, coursesFetcher, { initialSize: 10 });
-    // const courses = data ? [].concat(...data.map((page) => page.canvasData)) : [];
-    // const courses = data ? [].concat(...data.map((page) => page.canvasData.map((course) => { return { id: course.id, code: course.course_code, name: course.name } }))) : { };
-    // const courses = data ? data.map((page) => page.canvasData.map((course) => { return { id: course.id, code: course.course_code, name: course.name } })) : { };
     let courses = { };
     if (!error && data) data.map((page) => {
         page.canvasData.map((course) => {
             courses[course.id] = {
                 code: course.course_code,
-                name: course.name
+                name: course.name,
+                active: !props.activeCourses ? true : props.activeCourses.includes(course.course_code) ? true : false
             }
         })
     })

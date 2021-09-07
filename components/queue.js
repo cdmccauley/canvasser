@@ -5,6 +5,7 @@ import useCourses from '../data/use-courses';
 import useIReserve from '../data/use-i-reserve';
 import useQueue from '../data/use-queue';
 
+import Courses from '../components/courses'
 import Priorities from '../components/priorities'
 import Refresh from '../components/refresh'
 import Submission from '../components/submission'
@@ -131,10 +132,12 @@ export default function Queue(props) {
     const [priorities, setPriorities] = useState([])
     const [refreshRate, setRefreshRate] = useState(60)
     const [count, setCount] = useState(0)
+    const [activeCourses, setActiveCourses] = useState(null)
 
     useEffect(() => {
             if (localStorage.getItem('priorities')) setPriorities(JSON.parse(localStorage.getItem('priorities')))
             if (localStorage.getItem('refreshRate')) setRefreshRate(localStorage.getItem('refreshRate'))
+            if (localStorage.getItem('activeCourses')) setActiveCourses(localStorage.getItem('activeCourses'))
         }, [])
 
     const open = Boolean(anchorEl);
@@ -162,7 +165,9 @@ export default function Queue(props) {
     const { courses, courseError, mutateCourses } = useCourses({
         canvasUrl: props.canvasUrl,
         apiKey: props.apiKey,
-        user: user
+        user: user,
+        activeCourses: activeCourses,
+        setActiveCourses: setActiveCourses
     })
     
     const { iReserve, iReserveError, mutateIReserve } = useIReserve({
@@ -170,6 +175,8 @@ export default function Queue(props) {
         user: user,
         refreshRate: refreshRate
     });
+
+    // console.log(activeCourses)
 
     const { queue, queueError, mutateQueue } = useQueue({
         canvasUrl: props.canvasUrl,
@@ -191,7 +198,7 @@ export default function Queue(props) {
     if (queueError) return 'Error Loading Submissions';
     if (Object.keys(queue).length === 0) {
         props.setSubTotal(0)
-        return 'Loading Submissions'
+        // return 'Loading Submissions'
     };
 
     // debugging
@@ -240,8 +247,13 @@ export default function Queue(props) {
         <Paper>
             <Toolbar >
                 <Typography style={{flex: '1 1 100%'}}>
-                    {props.subTotal ? `${props.subTotal.toString()} Submissions` : ''}
+                    {props.subTotal ? `${props.subTotal.toString()} Submissions` : 'Requesting Submissions'}
                 </Typography>
+                <Courses 
+                    courses={courses}
+                    activeCourses={activeCourses}
+                    setActiveCourses={setActiveCourses}
+                />
                 <Priorities 
                     priorities={priorities}
                     setPriorities={setPriorities}
