@@ -2,13 +2,6 @@ import parseLinkHeader from "../libs/parse-link-header.js";
 
 const queueFetcher = async (url) => {
     // console.log(`libs/api-queue.queueFetcher(${url})`)
-    // let reserve = [];
-    // if (url.includes('davistech.instructure.com')) {
-    //     await fetch('/api/i-reserve')
-    //     .then((res) => res.json())
-    //     .then((data) => console.log(data))
-    //     .catch((error) => console.log(error))
-    // }
     let links;
     let resData;
     return await fetch('/api/queue', {
@@ -44,7 +37,7 @@ const queueFetcher = async (url) => {
     })
     .catch((error) => {
         console.log('libs/api-queue.queueFetcher() error:', error)
-        throw err
+        throw error
     })
 }
 export default queueFetcher
