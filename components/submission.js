@@ -15,6 +15,7 @@ export default function Submission(props) {
     const handleReserveRequest = (event) => {
         if (event.target.dataset.indeterminate === 'false') {
             if (event.target.checked) {
+                if (window.Notification && Notification.permission !== "denied") Notification.requestPermission()
                 Object.assign(document.createElement('a'), {
                     target: '_blank',
                     href: props.submission.submissionUrl
@@ -33,7 +34,24 @@ export default function Submission(props) {
                 })
                 .then((res) => {
                     if (!res.ok) {
-                        alert('Assignment is reserved for grading')
+                        if (!("Notification" in window)) {
+                            alert('Assignment is already reserved for grading')
+                        } else if (Notification.permission === "granted") {
+                            new Notification('Canvasser Alert', {
+                                renotify: true,
+                                requireInteraction: true,
+                                body: 'Assignment is already reserved for grading.'
+                            })
+                        } else if (Notification.permission !== "denied") {
+                            Notification.requestPermission().then((permission) => {
+                                if (permission === "granted") new Notification('Canvasser Alert', {
+                                    renotify: true,
+                                    requireInteraction: true,
+                                    body: 'Assignment is already reserved for grading.'
+                                })
+                            });
+                        }
+                        
                         setChecked(false)
                         props.updateIReserve()
                     }
