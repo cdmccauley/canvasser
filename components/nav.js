@@ -75,8 +75,7 @@ export default function Nav(props) {
         props.setCanvasUrl()
         props.setApiKey()
         props.setAuthorized(false)
-        localStorage.removeItem('canvasUrl')
-        localStorage.removeItem('apiKey')
+        localStorage.clear()
     }
 
     /*/

@@ -135,30 +135,30 @@ export default function Queue(props) {
     const [activeCourses, setActiveCourses] = useState(null)
 
     useEffect(() => {
-            if (localStorage.getItem('priorities')) setPriorities(JSON.parse(localStorage.getItem('priorities')))
-            if (localStorage.getItem('refreshRate')) setRefreshRate(localStorage.getItem('refreshRate'))
-            if (localStorage.getItem('activeCourses')) setActiveCourses(localStorage.getItem('activeCourses'))
-        }, [])
+        if (localStorage.getItem('priorities')) setPriorities(JSON.parse(localStorage.getItem('priorities')))
+        if (localStorage.getItem('refreshRate')) setRefreshRate(localStorage.getItem('refreshRate'))
+        if (localStorage.getItem('activeCourses')) setActiveCourses(JSON.parse(localStorage.getItem('activeCourses')))
+    }, [])
 
     const open = Boolean(anchorEl);
 
     const handleMenu = (event) => {
-            setAnchorEl(event.currentTarget);
-        };
+        setAnchorEl(event.currentTarget);
+    };
 
     const handleMenuClose = () => {
-            setAnchorEl(null);
-        };
+        setAnchorEl(null);
+    };
 
     const handleFilter = (event) => {
-            setFilter(event.target.value)
-        }
+        setFilter(event.target.value)
+    }
 
     const handleRequestSort = (event, property) => {
-            const isAsc = orderBy === property && order === 'asc';
-            setOrder(isAsc ? 'desc' : 'asc');
-            setOrderBy(property);
-        };
+        const isAsc = orderBy === property && order === 'asc';
+        setOrder(isAsc ? 'desc' : 'asc');
+        setOrderBy(property);
+    };
 
     const { user, userError, mutateUser } = useUser(props.canvasUrl && props.apiKey ? `${props.canvasUrl}/api/v1/users/self?access_token=${props.apiKey}` : null);
 
@@ -176,8 +176,6 @@ export default function Queue(props) {
         refreshRate: refreshRate
     });
 
-    // console.log(activeCourses)
-
     const { queue, queueError, mutateQueue } = useQueue({
         canvasUrl: props.canvasUrl,
         apiKey: props.apiKey,
@@ -189,22 +187,26 @@ export default function Queue(props) {
 
     if (!props.canvasUrl || !props.apiKey) return 'Authorization Required'
 
-    if(userError) return 'Error Loading User Information';
-    if(!user) return 'Loading User Information'
+    if (userError) return 'Error Loading User Information';
+    if (!user) return 'Loading User Information'
 
     if (courseError) return 'Error Loading Courses';
     if (Object.keys(courses).length === 0) return 'Loading Courses';
 
     if (queueError) return 'Error Loading Submissions';
-    if (Object.keys(queue).length === 0) {
+    if (queue && Object.keys(queue).length === 0) {
         props.setSubTotal(0)
-        // return 'Loading Submissions'
     };
 
     // debugging
     // if (courses) console.log('courses:', courses)
     // if (iReserve) console.log('iReserve:', iReserve)
     // if (queue) console.log('queue:', queue)
+
+    if (courses && !activeCourses) {
+        setActiveCourses(Array.from(Object.values(courses), (course) => course.code))
+        localStorage.setItem('activeCourses', JSON.stringify(Array.from(Object.values(courses), (course) => course.code)))
+    }
 
     if (queue && iReserve && Object.keys(iReserve).length > 0) {
         // set reservation statuses on each submission
@@ -237,10 +239,15 @@ export default function Queue(props) {
 
     if (queue) {
         if (filter) {
-            props.setSubTotal(Object.values(queue).filter((submission) => `${submission.assignmentName} ${courses[submission.courseId].name}`.toLowerCase().includes(filter.toLowerCase())).length)
+            props.setSubTotal(Object.values(queue)
+            .filter((submission) => activeCourses.includes(courses[submission.courseId].code))
+            .filter((submission) => `${submission.assignmentName} ${courses[submission.courseId].name}`.toLowerCase().includes(filter.toLowerCase())).length)
         } else {
-            props.setSubTotal(Object.keys(queue).length)
+            props.setSubTotal(Object.values(queue)
+            .filter((submission) => activeCourses.includes(courses[submission.courseId].code)).length)
         }
+    } else {
+        props.setSubTotal(null)
     }
 
     return(
@@ -306,7 +313,7 @@ export default function Queue(props) {
                     orderBy={orderBy}
                     onRequestSort={handleRequestSort}
                     />
-                    <TableBody>
+                    {queue && activeCourses ? <TableBody>
                         {stableSort(
                             stableSort(
                                 filter ? 
@@ -323,7 +330,7 @@ export default function Queue(props) {
                                 submission={submission}
                                 updateIReserve={mutateIReserve}
                             />)}
-                    </TableBody>
+                    </TableBody> : null}
                 </Table>
             </TableContainer>
         </Paper>

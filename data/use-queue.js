@@ -38,25 +38,28 @@ export default function useQueue(props) {
         refreshWhenHidden: true,
     });
 
-    let queue = { };
-    if (data) data.map((page) => {
-        page.canvasData.map((submission) => {
-            queue[submission.id] = {
-                id: submission.id,
-                courseId: submission.assignment.course_id,
-                courseName: props.courses[submission.assignment.course_id].name,
-                assignmentId: submission.assignment_id,
-                assignmentName: submission.assignment.name,
-                userId: submission.user_id,
-                userUrl: `${canvasUrl}/courses/${submission.assignment.course_id}/grades/${submission.user_id}`,
-                submittedAt: new Date(submission.submitted_at),
-                submissionUrl: `${canvasUrl}/courses/${submission.assignment.course_id}/gradebook/speed_grader?assignment_id=${submission.assignment_id}&student_id=${submission.user_id}`,
-                priority: getPriority(`${props.courses[submission.assignment.course_id].name} ${submission.assignment.name}`, props.priorities),
-            }
+    let queue = null;
+    if (error) {
+        console.log('useQueue error', error)
+    } else if (data) {
+        queue = { };
+        data.map((page) => {
+            page.canvasData.map((submission) => {
+                queue[submission.id] = {
+                    id: submission.id,
+                    courseId: submission.assignment.course_id,
+                    courseName: props.courses[submission.assignment.course_id].name,
+                    assignmentId: submission.assignment_id,
+                    assignmentName: submission.assignment.name,
+                    userId: submission.user_id,
+                    userUrl: `${canvasUrl}/courses/${submission.assignment.course_id}/grades/${submission.user_id}`,
+                    submittedAt: new Date(submission.submitted_at),
+                    submissionUrl: `${canvasUrl}/courses/${submission.assignment.course_id}/gradebook/speed_grader?assignment_id=${submission.assignment_id}&student_id=${submission.user_id}`,
+                    priority: getPriority(`${props.courses[submission.assignment.course_id].name} ${submission.assignment.name}`, props.priorities),
+                }
+            })
         })
-    })
-
-    if (error) console.log('useQueue error', error)
+    }
 
     const queueLoading = !data && !error;
     const queueError = error;
