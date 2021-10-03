@@ -29,6 +29,7 @@ export default function Index() {
     if (localStorage.getItem("apiKey"))
       setApiKey(localStorage.getItem("apiKey"));
     if (canvasUrl && apiKey) setAuthorized(true);
+    if (!("Notification" in window) || Notification.permission === "granted") setNotifications(true)
   });
 
   // https://material.io/design/color/the-color-system.html#tools-for-picking-colors
