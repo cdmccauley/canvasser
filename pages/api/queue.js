@@ -11,6 +11,7 @@ export default async function handler(req, res) {
     
     let resStatus = 504
     
+    // console.log('/api/queue.handler() fetch:', req.body.url.match(/(?<=\/)\d+(?=\/)/i)[0])
     // await fetch(req.body.url)
     await fetch(req.body.url, { signal: controller.signal })
     .then(canvasRes => {

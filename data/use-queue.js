@@ -6,11 +6,13 @@ const urlParameters = "student_ids[]=all&include[]=assignment&workflow_state[]=s
 let canvasUrl, apiKey, courses;
 
 const getKey = (pageIndex, previousPageData) => {
+    console.log(`use-queue.getKey(${pageIndex}, ${previousPageData})`)
     if (!courses[pageIndex]) return null // need to fix the cause of this
     if (courses.length === 0) return null
     if (pageIndex > courses.length) return null
     if (previousPageData && previousPageData.next) return `${previousPageData.next}&access_token=${apiKey}`
     if (courses.length === 1) return `${canvasUrl}/api/v1/courses/${courses[0]}/students/submissions?${urlParameters}&access_token=${apiKey}`
+    console.log('use-queue line 14:', courses[pageIndex])
     return `${canvasUrl}/api/v1/courses/${courses[pageIndex]}/students/submissions?${urlParameters}&access_token=${apiKey}`
 }
 
@@ -28,10 +30,11 @@ const getPriority = (submission, priorities) => {
 export default function useQueue(props) {
     canvasUrl = props.canvasUrl;
     apiKey = props.apiKey;
-    if (props.courses) courses = Object.keys(props.courses).filter((courseId) => props.courses[courseId].active)
+    // if (props.courses) courses = Object.keys(props.courses).filter((courseId) => props.courses[courseId].active)
+    courses = props.courses ? Object.keys(props.courses).filter((courseId) => props.courses[courseId].active) : null
 
     const { data, error, mutate, size, setSize, isValidating } = useSWRInfinite(getKey, queueFetcher, {
-        initialSize: props.courses ? props.courses.length : 0,
+        initialSize: courses ? courses.length : 0,
         revalidateAll: true, 
         refreshInterval: props.refreshRate * 1000, 
         revalidateOnFocus: false,
