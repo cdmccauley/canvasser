@@ -15,7 +15,7 @@ const queueFetcher = async (url) => {
     })
     .then((res) => {
         if (!res.ok) {
-            const error = new Error('An error occurred while fetching queue data.')
+            const error = new Error('An error occurred while fetching queue data from client.')
             error.info = res.json()
             error.status = res.status
             throw error
