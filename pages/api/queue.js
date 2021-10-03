@@ -17,7 +17,7 @@ export default async function handler(req, res) {
     .then((canvasRes) => {
       if (!canvasRes.ok) {
         const error = new Error(
-          "An error occurred while fetching queue data from server."
+          "Communication error between Canvasser server and Canvas server."
         );
         error.info = canvasRes.json();
         error.status = canvasRes.status;
@@ -31,6 +31,8 @@ export default async function handler(req, res) {
       if (canvasRes.headers.has("link")) {
         res.setHeader("link", canvasRes.headers.get("link"));
       }
+      // log to see if this is the cause of any errors, if this hits 0 canvas should be sending a 403
+      if (canvasRes.headers.has("x-rate-limit-remaining") && canvasRes.headers.get("x-rate-limit-remaining") < 70.0) console.log(req.body.url.match(/(?<=\/)\d+(?=\/)/i)[0], "x-rate-limit-remaining", canvasRes.headers.get("x-rate-limit-remaining"))
       return canvasRes.json();
     })
     .then((canvasData) => {
