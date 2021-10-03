@@ -5,7 +5,7 @@ export function filteredQueue(activeCourses, courses, queue, filter) {
         activeCourses.includes(courses[submission.courseId].code) &&
         `${submission.assignmentName} ${courses[submission.courseId].name}`
           .toLowerCase()
-          .includes(filter.toLowerCase())
+          .includes(filter ? filter.toLowerCase() : "")
     )
   );
 }

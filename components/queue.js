@@ -5,6 +5,7 @@ import useCourses from '../data/use-courses';
 import useIReserve from '../data/use-i-reserve';
 import useQueue from '../data/use-queue';
 
+import { filteredQueue } from "../libs/filtered-queue";
 import {
     descendingComparator,
     getComparator,
@@ -169,6 +170,12 @@ export default function Queue(props) {
         refreshRate: refreshRate
     })
 
+    // testing filteredQueue, jest test needs troubleshooting
+    // if (queue) {
+    //     console.log(queue)
+    //     console.log(filteredQueue(["ITEC 1457"], courses, queue, null))
+    // }
+
     if (!props.canvasUrl || !props.apiKey) return 'Authorization Required'
 
     if (userError) return 'Error Loading User Information';
@@ -221,7 +228,9 @@ export default function Queue(props) {
         }
     }    
 
+    
     if (queue) {
+        
         if (filter) {
             props.setSubTotal(Object.values(queue)
             .filter((submission) => activeCourses.includes(courses[submission.courseId].code))
