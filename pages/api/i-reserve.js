@@ -1,17 +1,12 @@
-// const { MongoClient } = require('mongodb');
 import { connectToDatabase } from "../../libs/mongodb";
 
 export default async function handler(req, res) {
     let iReserve = [];
-    // const client = new MongoClient(process.env.MONGO_CONNECTION, { useUnifiedTopology: true });
     const { database } = await connectToDatabase();
     let excepted = false;
     try {
-        // await client.connect();
-        // const database = client.db(process.env.MONGO_DB);
         const collection = await database.collection(process.env.MONGO_COLLECTION)
         iReserve = await collection.find().toArray()
-        // iReserve = await database.collection(process.env.MONGO_COLLECTION).find().toArray()
         // console.log('/api/i-reserve.handler() iReserve:', iReserve)
         if (req.method === 'POST') {
             if (req.body.action === 'unreserve') {
@@ -45,9 +40,8 @@ export default async function handler(req, res) {
         excepted = true;
         console.log('/api/i-reserve.handler() exception: ', e)
     } finally {
-        // await client.close();
-        if (excepted) res.status(504).send()
-        if (req.method === 'GET') res.status(200).json(JSON.stringify({ iReserve }))
+        if (excepted) res.status(409).send()
+        if (req.method !== 'POST') res.status(200).json(JSON.stringify({ iReserve }))
         if (req.method === 'POST') res.status(200).send()
     }
 }

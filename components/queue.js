@@ -49,28 +49,6 @@ import {
 
 import { makeStyles } from '@material-ui/core/styles';
 
-// function descendingComparator(a, b, orderBy) {
-//     if (b[orderBy] < a[orderBy]) return -1;
-//     if (b[orderBy] > a[orderBy]) return 1;
-//     return 0;
-// }
-
-// function getComparator(order, orderBy) {
-//     return order === 'desc'
-//         ? (a, b) => descendingComparator(a, b, orderBy)
-//         : (a, b) => -descendingComparator(a, b, orderBy);
-// }
-
-// function stableSort(array, comparator) {
-//     const stabilizedThis = array.map((el, index) => [el, index]);
-//     stabilizedThis.sort((a, b) => {
-//         const order = comparator(a[0], b[0]);
-//         if (order !== 0) return order;
-//         return a[1] - b[1];
-//     });
-//     return stabilizedThis.map((el) => el[0]);
-// }
-
 // id should be name of object property for sorting
 const sortCells = [
     { id: 'priority', label: 'Priority' },
@@ -131,8 +109,8 @@ export default function Queue(props) {
     // console.log('queue props: ', props)
     const classes = useStyles();
     
-    const [order, setOrder] = React.useState('asc');
-    const [orderBy, setOrderBy] = React.useState('priority');
+    const [order, setOrder] = useState('asc');
+    const [orderBy, setOrderBy] = useState('priority');
     const [anchorEl, setAnchorEl] = useState(null);
     const [filter, setFilter] = useState(null)
     const [priorities, setPriorities] = useState([])
@@ -197,9 +175,9 @@ export default function Queue(props) {
     if (!user) return 'Loading User Information'
 
     if (courseError) return 'Error Loading Courses';
-    if (Object.keys(courses).length === 0) return 'Loading Courses';
+    if (!courses) return 'Loading Courses';
 
-    if (queueError) return 'Error Loading Submissions';
+    if (!queue && queueError) return 'Error Loading Submissions';
     if (queue && Object.keys(queue).length === 0) {
         props.setSubTotal(0)
     };
