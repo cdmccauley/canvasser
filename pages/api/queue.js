@@ -32,7 +32,7 @@ export default async function handler(req, res) {
         res.setHeader("link", canvasRes.headers.get("link"));
       }
       // log to see if this is the cause of any errors, if this hits 0 canvas should be sending a 403
-      if (canvasRes.headers.has("x-rate-limit-remaining") && canvasRes.headers.get("x-rate-limit-remaining") < 70.0) console.log(req.body.url.match(/(?<=\/)\d+(?=\/)/i)[0], "x-rate-limit-remaining", canvasRes.headers.get("x-rate-limit-remaining"))
+      if (canvasRes.headers.has("x-rate-limit-remaining") && canvasRes.headers.get("x-rate-limit-remaining") < 70.0) console.warn(req.body.url.match(/(?<=\/)\d+(?=\/)/i)[0], "x-rate-limit-remaining", canvasRes.headers.get("x-rate-limit-remaining"))
       return canvasRes.json();
     })
     .then((canvasData) => {
@@ -45,11 +45,11 @@ export default async function handler(req, res) {
     .catch((error) => {
       clearTimeout(timeoutId);
 
-      console.log("/api/queue.handler error");
-      if (error.name) console.log("error.name", error.name);
-      if (error.status) console.log("error.status", error.status);
-      if (error.message) console.log("error.message", error.message);
-      if (error.info) console.log("error.info", error.info);
+      console.error("/api/queue.handler error");
+      if (error.name) console.error("error.name", error.name);
+      if (error.status) console.error("error.status", error.status);
+      if (error.message) console.error("error.message", error.message);
+      if (error.info) console.error("error.info", error.info);
 
       res.status(resStatus).json(JSON.stringify({ canvasData: [] }));
     });
