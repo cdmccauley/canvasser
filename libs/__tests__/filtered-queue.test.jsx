@@ -1,6 +1,5 @@
 import { filteredQueue } from "../filtered-queue";
 
-// user only has one active course
 const oneActiveCourse = ["C000"];
 const allActiveCourses = ["C000", "C123", "C456"];
 const courses = {

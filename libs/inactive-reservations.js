@@ -1,10 +1,15 @@
-export function inactiveReservations(external, internal) {
-  return internal.filter((id) => !external.includes(id));
+export function inactiveReservations(queue, reserved) {
+  return reserved.filter(
+    (id) =>
+      !Object.values(queue)
+        .map((submission) => submission.submissionUrl)
+        .includes(id)
+  );
 }
 
 export function clearInactiveReservations(inactive) {
   fetch("/api/i-reserve", {
-    method: "POST",
+    method: "POST", // this operation might be a PUT instead https://restfulapi.net/ (idempotence)
     headers: {
       "Content-Type": "application/json",
     },
