@@ -11,119 +11,35 @@ import {
   inactiveReservations,
   clearInactiveReservations,
 } from "../libs/inactive-reservations";
-import {
-  getComparator,
-  stableSort,
-} from "../libs/table-sorters";
+import { getComparator, stableSort } from "../libs/table-sorters";
 
 import Courses from "../components/courses";
 import Priorities from "../components/priorities";
 import Refresh from "../components/refresh";
+import Filter from "../components/filter";
+import SubmissionHeader from "../components/submission-header";
 import Submission from "../components/submission";
 
 import {
   Paper,
   Toolbar,
   Typography,
-  Tooltip,
-  IconButton,
-  Menu,
-  ListItem,
-  TextField,
   TableContainer,
   Table,
-  TableHead,
-  TableSortLabel,
   TableBody,
-  TableRow,
-  TableCell,
 } from "@material-ui/core";
-
-/*/
- *  icons that may be used:
- *  NewReleasesRounded,
- *  PriorityHighRounded,
- *  SyncRounded,
- *  SyncDisabledRounded,
-/*/
-import {
-  FormatLineSpacingRounded,
-  FilterListRounded,
-  RestoreRounded,
-} from "@material-ui/icons";
-
-import { makeStyles } from "@material-ui/core/styles";
-
-// id should be name of object property for sorting
-const sortCells = [
-  { id: "priority", label: "Priority" },
-  { id: "assignmentName", label: "Assignment" },
-  { id: "courseName", label: "Course" },
-  { id: "submittedAt", label: "Submitted" },
-];
-
-function CustomTableHead(props) {
-  const { order, orderBy, onRequestSort, classes } = props;
-  const createSortHandler = (property) => (event) => {
-    onRequestSort(event, property);
-  };
-
-  return (
-    <TableHead>
-      <TableRow>
-        <TableCell>Status</TableCell>
-        {sortCells.map((sortCell) => (
-          <TableCell
-            key={sortCell.id}
-            sortDirection={orderBy === sortCell.id ? order : false}
-          >
-            <TableSortLabel
-              active={orderBy === sortCell.id}
-              direction={orderBy === sortCell.id ? order : "asc"}
-              onClick={createSortHandler(sortCell.id)}
-            >
-              {sortCell.label}
-              {orderBy === sortCell.id ? (
-                <span className={classes.visuallyHidden}>
-                  {order === "desc" ? "sorted descending" : "sorted ascending"}
-                </span>
-              ) : null}
-            </TableSortLabel>
-          </TableCell>
-        ))}
-      </TableRow>
-    </TableHead>
-  );
-}
-
-const useStyles = makeStyles((theme) => ({
-  visuallyHidden: {
-    border: 0,
-    clip: "rect(0 0 0 0)",
-    height: 1,
-    margin: -1,
-    overflow: "hidden",
-    padding: 0,
-    position: "absolute",
-    top: 20,
-    width: 1,
-  },
-}));
 
 export default function Queue(props) {
   // console.log('queue props: ', props)
-  const classes = useStyles();
-
   const [order, setOrder] = useState("asc");
   const [orderBy, setOrderBy] = useState("priority");
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [filter, setFilter] = useState(null);
+  const [filter, setFilter] = useState("");
   const [priorities, setPriorities] = useState([]);
   const [refreshRate, setRefreshRate] = useState(60);
-  const [count, setCount] = useState(0);
   const [activeCourses, setActiveCourses] = useState(null);
 
   useEffect(() => {
+    // get items from storage
     if (localStorage.getItem("priorities"))
       setPriorities(JSON.parse(localStorage.getItem("priorities")));
     if (localStorage.getItem("refreshRate"))
@@ -132,33 +48,15 @@ export default function Queue(props) {
       setActiveCourses(JSON.parse(localStorage.getItem("activeCourses")));
   }, []);
 
-  const open = Boolean(anchorEl);
-
-  const handleMenu = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleFilter = (event) => {
-    setFilter(event.target.value);
-  };
-
-  const handleRequestSort = (event, property) => {
-    const isAsc = orderBy === property && order === "asc";
-    setOrder(isAsc ? "desc" : "asc");
-    setOrderBy(property);
-  };
-
-  const { user, userError, mutateUser } = useUser(
+  // user data from swr
+  const { user, userError } = useUser(
     props.canvasUrl && props.apiKey
       ? `${props.canvasUrl}/api/v1/users/self?access_token=${props.apiKey}`
       : null
   );
 
-  const { courses, courseError, mutateCourses } = useCourses({
+  // course data from swr
+  const { courses, courseError } = useCourses({
     canvasUrl: props.canvasUrl,
     apiKey: props.apiKey,
     user: user,
@@ -166,13 +64,15 @@ export default function Queue(props) {
     setActiveCourses: setActiveCourses,
   });
 
-  const { iReserve, iReserveError, mutateIReserve } = useIReserve({
+  // davis tech reserve data from swr
+  const { iReserve, mutateIReserve } = useIReserve({
     canvasUrl: props.canvasUrl,
     user: user,
     refreshRate: refreshRate,
   });
 
-  const { queue, queueError, mutateQueue } = useQueue({
+  // queue data from swr
+  const { queue, queueError } = useQueue({
     canvasUrl: props.canvasUrl,
     apiKey: props.apiKey,
     courses: courses,
@@ -181,18 +81,13 @@ export default function Queue(props) {
     refreshRate: refreshRate,
   });
 
+  // early returns to provide loading stage or error feedback
   if (!props.canvasUrl || !props.apiKey) return "Authorization Required";
-
   if (userError) return "Error Loading User Information";
   if (!user) return "Loading User Information";
-
   if (courseError) return "Error Loading Courses";
   if (!courses) return "Loading Courses";
-
   if (!queue && queueError) return "Error Loading Submissions";
-  if (queue && Object.keys(queue).length === 0) {
-    props.setSubTotal(0);
-  }
 
   // debugging
   // if (courses) console.log('courses:', courses)
@@ -212,12 +107,14 @@ export default function Queue(props) {
   }
 
   // get array of items to be unreserved
-  const inactiveReserved = queue && iReserve
-    ? inactiveReservations(queue, iReserve.selfReserved)
-    : null;
+  const inactiveReserved =
+    queue && iReserve
+      ? inactiveReservations(queue, iReserve.selfReserved)
+      : null;
 
   // unreserve
-  if (inactiveReserved && inactiveReserved.length > 0) clearInactiveReservations(inactiveReserved);
+  if (inactiveReserved && inactiveReserved.length > 0)
+    clearInactiveReservations(inactiveReserved);
 
   // filter queue
   const filteredSubmissions =
@@ -231,11 +128,14 @@ export default function Queue(props) {
       ? statusQueue(filteredSubmissions, iReserve)
       : null;
 
-  // set display total
+  // const statusSubmissions = useMemo(() => filteredSubmissions && iReserve ? statusQueue(filteredSubmissions, iReserve) : null, [filteredSubmissions, iReserve])
+
+  //set display total
+  // the cause of "Warning: Cannot update a component (`Index`) while rendering a different component (`Queue`).""
   props.setSubTotal(
     statusSubmissions && Object.values(statusSubmissions).length > 0
       ? Object.values(statusSubmissions).length
-      : null
+      : 0
   );
 
   return (
@@ -253,51 +153,17 @@ export default function Queue(props) {
         />
         <Priorities priorities={priorities} setPriorities={setPriorities} />
         <Refresh refreshRate={refreshRate} setRefreshRate={setRefreshRate} />
-        <Tooltip title="Filter" placement="top">
-          <IconButton edge={"end"} onClick={handleMenu}>
-            <FilterListRounded />
-          </IconButton>
-        </Tooltip>
-        <Menu
-          anchorEl={anchorEl}
-          getContentAnchorEl={null}
-          anchorOrigin={{
-            vertical: "top",
-            horizontal: "left",
-          }}
-          keepMounted
-          transformOrigin={{
-            vertical: "top",
-            horizontal: "right",
-          }}
-          open={open}
-          onClose={handleMenuClose}
-        >
-          <ListItem>
-            <TextField
-              size={"small"}
-              variant="outlined"
-              label="Filter"
-              InputProps={{
-                color: "secondary",
-              }}
-              InputLabelProps={{
-                color: "secondary",
-              }}
-              onChange={handleFilter}
-            />
-          </ListItem>
-        </Menu>
+        <Filter filter={filter} setFilter={setFilter} />
       </Toolbar>
       <TableContainer style={{ marginBottom: "2em" }}>
         <Table>
-          <CustomTableHead
-            classes={classes}
+          <SubmissionHeader
             order={order}
+            setOrder={setOrder}
             orderBy={orderBy}
-            onRequestSort={handleRequestSort}
+            setOrderBy={setOrderBy}
           />
-          {queue && activeCourses ? (
+          {statusSubmissions ? (
             <TableBody>
               {stableSort(
                 stableSort(
@@ -314,7 +180,9 @@ export default function Queue(props) {
                 />
               ))}
             </TableBody>
-          ) : null}
+          ) : (
+            <TableBody></TableBody>
+          )}
         </Table>
       </TableContainer>
     </Paper>
