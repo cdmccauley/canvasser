@@ -60,6 +60,7 @@ export default function useQueue(props) {
     if (error.status) console.log("error.status", error.status);
     if (error.message) console.log("error.message", error.message);
     if (error.info) console.log("error.info", error.info);
+    if (data) console.log("useQueue data", data)
   }
   if (data) {
     queue = {};
