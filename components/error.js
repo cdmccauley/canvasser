@@ -3,25 +3,25 @@ import React from 'react';
 import { Alert, Button } from '@mui/material';
 import { Typography } from '@material-ui/core';
 
-export default function Notifications(props) {
+export default function Error(props) {
   return (
     <Alert
       variant='outlined'
-      severity='warning'
+      severity='error'
       action={
         <Button
           color='inherit'
           onClick={() => {
-            Notification.requestPermission().then((permission) => {
-              if (permission === 'granted') props.setNotifications(true);
-            });
+            Object.assign(document.createElement("a"), {
+                href: "https://canvasser.vercel.app/",
+              }).click()
           }}
         >
-          ENABLE
+          RELOAD
         </Button>
       }
     >
-      <Typography>Notifications are not enabled.</Typography>
+      <Typography>Canvasser has encountered an error.</Typography>
     </Alert>
   );
 }

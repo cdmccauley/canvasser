@@ -12,6 +12,7 @@ import Nav from "../components/nav.js";
 import Authorize from "../components/authorize.js";
 import Queue from "../components/queue.js";
 import Notifications from "../components/notifications.js";
+import Error from "../components/error.js";
 
 // import styles from '../styles/Index.module.css'
 
@@ -22,6 +23,7 @@ export default function Index() {
   const [apiKey, setApiKey] = useState();
   const [subTotal, setSubTotal] = useState();
   const [notifications, setNotifications] = useState(false);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     if (localStorage.getItem("canvasUrl"))
@@ -90,6 +92,7 @@ export default function Index() {
         setDarkMode={setDarkMode}
       />
       <Container>
+        {error ? <Error /> : null}
         {authorized && !notifications ? (
           <Notifications setNotifications={setNotifications} />
         ) : null}
@@ -99,11 +102,14 @@ export default function Index() {
             apiKey={apiKey}
             subTotal={subTotal}
             setSubTotal={setSubTotal}
+            error={error}
+            setError={setError}
           />
         ) : (
           <></>
         )}
       </Container>
+      
     </ThemeProvider>
   );
 }

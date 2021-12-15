@@ -79,6 +79,8 @@ export default function Queue(props) {
     reserve: iReserve,
     priorities: priorities,
     refreshRate: refreshRate,
+    error: props.error,
+    setError: props.setError,
   });
 
   // early returns to provide loading stage or error feedback
