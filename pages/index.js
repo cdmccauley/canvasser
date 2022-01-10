@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 
 import {
   Container,
-  createMuiTheme,
+  createTheme,
   ThemeProvider,
   CssBaseline,
 } from "@material-ui/core";
@@ -38,7 +38,7 @@ export default function Index() {
   // https://material-ui.com/customization/color/#playground
   // https://imagecolorpicker.com/
   // https://hexcolor.co/
-  const theme = createMuiTheme({
+  const theme = createTheme({
     palette: darkMode
       ? {
           type: "dark",
