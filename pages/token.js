@@ -3,16 +3,18 @@ import React, { useState, useEffect } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 
-export default function Extract() {
+export default function Token() {
+  const url = "/api/token";
+
   const router = useRouter();
 
   const error = router.query.error;
   const code = router.query.code;
   const state = router.query.state;
 
-  const url = "/api/token";
+  const success = !error && code && state;
 
-  if (code && state) {
+  if (success) {
     fetch(url, {
       method: "POST",
       headers: {
@@ -23,14 +25,25 @@ export default function Extract() {
       }),
     })
       .then((res) => res.json())
-      .then((data) => console.log(data))
+      .then((data) => {
+        console.log(data);
+        return new Promise((res, rej) => {
+          if (data) {
+            localStorage.setItem("token", JSON.stringify(data));
+            res();
+          } else {
+            rej("token storage failed");
+          }
+        });
+      })
+      .then(() => router.push("/"))
       .catch((error) => console.log("error: ", error));
   }
 
   return (
     <div>
       <Head>
-        <title>Canvasser - Extract</title>
+        <title>Canvasser - Token</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
