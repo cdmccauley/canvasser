@@ -19,7 +19,18 @@ export default function Index() {
     if (token) setAuthorized(true);
   }, [token]);
 
-  // if (token) console.log(token, authorized);
+  if (authorized)
+    fetch("/api/submissions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        access_token: token.access_token,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => console.log(data));
 
   return (
     <div>
@@ -30,6 +41,7 @@ export default function Index() {
 
       <main>
         {authorized ? `Welcome ${token.user.name}` : null}
+        <br />
         <a href={url}>Authorize</a>
       </main>
 
