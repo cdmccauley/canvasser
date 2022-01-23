@@ -3,8 +3,9 @@ import React, { useState, useEffect, useMemo } from "react";
 
 export default function Index() {
   // TODO: implement state parameter in URL
+  const subdomain = "davistech"
   const url =
-    "https://davistech.instructure.com/login/oauth2/auth?client_id=140000000000311&response_type=code&state=temp&redirect_uri=https://canvasser.vercel.app"; // TODO: update to /token
+    `https://${subdomain}.instructure.com/login/oauth2/auth?client_id=140000000000311&response_type=code&state=temp&redirect_uri=https://canvasser.vercel.app`; // TODO: update to /token
 
   // const [darkMode, setDarkMode] = useState(true);
   const [authorized, setAuthorized] = useState(false);
@@ -30,7 +31,28 @@ export default function Index() {
       }),
     })
       .then((res) => res.json())
-      .then((data) => console.log(data));
+      .then((data) => {
+        // array of courses
+        // console.log(data.data.allCourses);
+
+        // course submissions array
+        // console.log(data.data.allCourses[].submissionsConnection.edges);
+        
+        // course id
+        // console.log(data.data.allCourses[37]._id)
+
+        // submission id
+        // console.log(data.data.allCourses[37].submissionsConnection.edges[0].node.assignment._id)
+        
+        // assignment id
+        // console.log(data.data.allCourses[37].submissionsConnection.edges[0].node.user._id)
+        
+        // speedgrader url
+        // console.log(`https://${subdomain}.instructure.com/courses/${data.data.allCourses[37]._id}/gradebook/speed_grader?assignment_id=${data.data.allCourses[37].submissionsConnection.edges[0].node.assignment._id}&student_id=${data.data.allCourses[37].submissionsConnection.edges[0].node.user._id}`)
+        
+        // grades url
+        // console.log(`https://${subdomain}.instructure.com/courses/${data.data.allCourses[37]._id}/grades/${data.data.allCourses[37].submissionsConnection.edges[0].node.user._id}`)
+      });
 
   return (
     <div>

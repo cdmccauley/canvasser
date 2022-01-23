@@ -1,5 +1,5 @@
 export default async function handler(req, res) {
-  console.log("/api/token.handler()");
+//   console.log("/api/token.handler()");
   const url = "https://davistech.instructure.com/login/oauth2/token";
   await fetch(url, {
     method: "POST",
@@ -16,10 +16,10 @@ export default async function handler(req, res) {
   })
     .then((canvas_res) => canvas_res.json())
     .then((data) => {
-      console.log(data);
+    //   console.log(data);
       res.status(200).json(
         JSON.stringify(data)
       );
     })
-    .catch((err) => console.log(err));
+    .catch((err) => console.error(err));
 }

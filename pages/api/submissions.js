@@ -1,33 +1,34 @@
 export default async function handler(req, res) {
-  console.log("/api/submissions.handler()");
+//   console.log("/api/submissions.handler()");
+  // TODO: get subdomain from req.body
   const url = "https://davistech.instructure.com/api/graphql";
   const query = `query PendingReview {
                     allCourses {
                         _id
                         submissionsConnection(filter: {states: [submitted, pending_review]}) {
-                        edges {
-                            node {
-                            postedAt
-                            _id
-                            assignment {
-                                _id
-                                name
+                            edges {
+                                node {
+                                    postedAt
+                                    _id
+                                    assignment {
+                                        _id
+                                        name
+                                    }
+                                    user {
+                                        name
+                                        _id
+                                        avatarUrl
+                                        sisId
+                                        sortableName
+                                    }
+                                }
                             }
-                            user {
-                                name
-                                _id
-                                avatarUrl
-                                sisId
-                                sortableName
-                            }
-                            }
-                        }
                         }
                         courseCode
                         name
                     }
                 }`;
-
+  // TODO: check status, throw error, respond on error
   await fetch(url, {
     method: "POST",
     headers: {
@@ -38,8 +39,8 @@ export default async function handler(req, res) {
   })
     .then((canvas_res) => canvas_res.json())
     .then((data) => {
-      console.log(data);
+    //   console.log(data);
       res.status(200).json(JSON.stringify(data));
     })
-    .catch((err) => console.log(err));
+    .catch((err) => console.error(err));
 }

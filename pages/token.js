@@ -29,7 +29,8 @@ export default function Token() {
         console.log(data);
         return new Promise((res, rej) => {
           if (data) {
-            localStorage.setItem("token", JSON.stringify(data));
+            const token = {...data, expires_at: (new Date().getTime() / 1000 + data.expires_in)}
+            localStorage.setItem("token", JSON.stringify(token));
             res();
           } else {
             rej("token storage failed");
@@ -37,7 +38,7 @@ export default function Token() {
         });
       })
       .then(() => router.push("/"))
-      .catch((error) => console.log("error: ", error));
+      .catch((error) => console.error("error: ", error));
   }
 
   return (
