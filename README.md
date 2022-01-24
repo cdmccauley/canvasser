@@ -19,14 +19,14 @@ cp .env.local.example .env.local
 
 Set each variable on `.env.local`:
 
-#### 0.3 environment variables
+#### Canvasser 0.3 environment variables
 
 - `MONGODB_URI` - MongoDB connection string
 - `MONGODB_DB` - MongoDB database name
 - `CLIENT_ID` - Canvas ID
 - `CLIENT_SECRET` - Canvas API key
 
-#### 0.2 environment variables
+#### Canvasser 0.2 environment variables
 
 - `MONGO_CONNECTION` - MongoDB connection string
 - `MONGO_DB` - MongoDB database name

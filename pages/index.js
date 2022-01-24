@@ -4,14 +4,19 @@ import React, { useState, useEffect, useMemo } from "react";
 export default function Index() {
   // TODO: implement state parameter in URL
   const subdomain = "davistech"
+  const client_id = "140000000000311"
+  const state = "temp"
+  // const redirect_uri = "https://canvasser.vercel.app"
+  const redirect_uri = "https://canvasser-git-03-ncode.vercel.app/token"
   const url =
-    `https://${subdomain}.instructure.com/login/oauth2/auth?client_id=140000000000311&response_type=code&state=temp&redirect_uri=https://canvasser.vercel.app`; // TODO: update to /token
+    `https://${subdomain}.instructure.com/login/oauth2/auth?client_id=${client_id}&response_type=code&state=${state}&redirect_uri=${redirect_uri}`;
 
   // const [darkMode, setDarkMode] = useState(true);
   const [authorized, setAuthorized] = useState(false);
   const [token, setToken] = useState();
 
   useEffect(() => {
+    console.log(process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA)
     if (!token && localStorage.getItem("token"))
       setToken(JSON.parse(localStorage.getItem("token")));
   }, []);
