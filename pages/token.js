@@ -8,6 +8,7 @@ export default function Token() {
 
   const router = useRouter();
 
+  // TODO: rearrange, error last, make error true if no code or state or just redirect
   const error = router.query.error;
   const code = router.query.code;
   const state = router.query.state;
