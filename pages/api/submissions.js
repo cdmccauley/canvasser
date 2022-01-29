@@ -2,32 +2,33 @@ export default async function handler(req, res) {
 //   console.log("/api/submissions.handler()");
   // TODO: get subdomain from req.body
   const url = "https://davistech.instructure.com/api/graphql";
-  const query = `query PendingReview {
-                    allCourses {
-                        _id
-                        submissionsConnection(filter: {states: [submitted, pending_review]}) {
-                            edges {
-                                node {
-                                    postedAt
-                                    _id
-                                    assignment {
-                                        _id
-                                        name
-                                    }
-                                    user {
-                                        name
-                                        _id
-                                        avatarUrl
-                                        sisId
-                                        sortableName
-                                    }
-                                }
-                            }
-                        }
-                        courseCode
-                        name
-                    }
-                }`;
+  const query = `
+    query PendingReview {
+      allCourses {
+          _id
+          submissionsConnection(filter: {states: [submitted, pending_review]}) {
+              edges {
+                  node {
+                      postedAt
+                      _id
+                      assignment {
+                          _id
+                          name
+                      }
+                      user {
+                          name
+                          _id
+                          avatarUrl
+                          sisId
+                          sortableName
+                      }
+                  }
+              }
+          }
+          courseCode
+          name
+        }
+    }`;
   // TODO: check status, throw error, respond on error
   await fetch(url, {
     method: "POST",
