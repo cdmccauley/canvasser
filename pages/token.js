@@ -30,7 +30,8 @@ export default function Token() {
         console.log(data);
         return new Promise((res, rej) => {
           if (data) {
-            const token = {...data, expires_at: (new Date().getTime() / 1000 + data.expires_in)}
+            // TODO: see if this time conversion thing can be cleaned up
+            const token = {...data, expires_at: (new Date().getTime() / 1000 + data.expires_in) * 1000}
             localStorage.setItem("token", JSON.stringify(token));
             res();
           } else {

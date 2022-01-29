@@ -21,49 +21,60 @@ export default function Index() {
   const [authorized, setAuthorized] = useState(false);
   const [token, setToken] = useState();
 
-  const swrData = { id: "1" };
+  // example of usecontext
+  const swrData = { id: "2" };
   const PretendComponent = (props) => {
-    const  swrData  = useContext(DataContext);
-    console.log(swrData);
+    const swrData = useContext(DataContext);
     return <div>{swrData.id}</div>;
   };
+  // end example
 
+  // get token from local onload
   useEffect(() => {
-    if (!token && localStorage.getItem("token"))
-      setToken(JSON.parse(localStorage.getItem("token")));
+    const localToken = JSON.parse(localStorage.getItem("token"));
+    if (localToken) {
+      const expired = new Date() > new Date(localToken.expires_at);
+    }
+    if (!expired && !token && localToken) {
+      setToken(localToken);
+    }
   }, []);
 
+  // if token changes flag authorization
   useMemo(() => {
     if (token) setAuthorized(true);
   }, [token]);
 
-  if (authorized)
-    fetch("/api/submissions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        access_token: token.access_token,
-      }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        // array of courses
-        console.log(data.data.allCourses);
-        // course submissions array
-        // console.log(data.data.allCourses[].submissionsConnection.edges);
-        // course id
-        // console.log(data.data.allCourses[37]._id)
-        // submission id
-        // console.log(data.data.allCourses[37].submissionsConnection.edges[0].node.assignment._id)
-        // assignment id
-        // console.log(data.data.allCourses[37].submissionsConnection.edges[0].node.user._id)
-        // speedgrader url
-        // console.log(`https://${subdomain}.instructure.com/courses/${data.data.allCourses[37]._id}/gradebook/speed_grader?assignment_id=${data.data.allCourses[37].submissionsConnection.edges[0].node.assignment._id}&student_id=${data.data.allCourses[37].submissionsConnection.edges[0].node.user._id}`)
-        // grades url
-        // console.log(`https://${subdomain}.instructure.com/courses/${data.data.allCourses[37]._id}/grades/${data.data.allCourses[37].submissionsConnection.edges[0].node.user._id}`)
-      });
+  useEffect(() => {
+    if (authorized)
+      fetch("/api/submissions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          access_token: token.access_token,
+        }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          // array of courses
+          console.log(data.data.allCourses);
+          // course submissions array
+          // console.log(data.data.allCourses[].submissionsConnection.edges);
+          // course id
+          // console.log(data.data.allCourses[37]._id)
+          // submission id
+          // console.log(data.data.allCourses[37].submissionsConnection.edges[0].node.assignment._id)
+          // assignment id
+          // console.log(data.data.allCourses[37].submissionsConnection.edges[0].node.user._id)
+          // speedgrader url
+          // console.log(`https://${subdomain}.instructure.com/courses/${data.data.allCourses[37]._id}/gradebook/speed_grader?assignment_id=${data.data.allCourses[37].submissionsConnection.edges[0].node.assignment._id}&student_id=${data.data.allCourses[37].submissionsConnection.edges[0].node.user._id}`)
+          // grades url
+          // console.log(`https://${subdomain}.instructure.com/courses/${data.data.allCourses[37]._id}/grades/${data.data.allCourses[37].submissionsConnection.edges[0].node.user._id}`)
+        })
+        .catch((error) => console.error(error));
+  }, [authorized]);
 
   return (
     <div>
