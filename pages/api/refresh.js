@@ -1,5 +1,5 @@
 export default async function handler(req, res) {
-  //   console.log("/api/token.handler()");
+  console.log("/api/refresh", req.body);
   const url = "https://davistech.instructure.com/login/oauth2/token";
   await fetch(url, {
     method: "POST",
@@ -7,16 +7,15 @@ export default async function handler(req, res) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      grant_type: "authorization_code",
+      grant_type: "refresh_token",
       client_id: process.env.CLIENT_ID,
       client_secret: process.env.CLIENT_SECRET,
-      redirect_uri: "https://canvasser.vercel.app", // TODO: update to /token
-      code: req.body.code,
+      refresh_token: req.body,
     }),
   })
     .then((canvas_res) => {
       if (!canvas_res.ok) {
-        const ex = new Error("token request failed");
+        const ex = new Error("refresh token request failed");
         ex.info = canvas_res.json();
         ex.status = canvas_res.status;
         throw ex;
@@ -25,7 +24,7 @@ export default async function handler(req, res) {
       }
     })
     .then((data) => {
-      //   console.log(data);
+      console.log(data);
       res.status(200).json(JSON.stringify(data));
     })
     .catch((err) => {

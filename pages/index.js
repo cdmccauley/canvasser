@@ -1,13 +1,18 @@
-import Head from "next/head";
 import React, {
   createContext,
-  useContext,
   useState,
   useEffect,
   useMemo,
+  useRef,
 } from "react";
 
-const DataContext = createContext({});
+import Head from "next/head";
+
+import useRefresh from "../data/use-refresh";
+
+import Authorize from "../components/authorize";
+
+export const DataContext = createContext({});
 
 export default function Index() {
   // TODO: implement state parameter in URL
@@ -19,34 +24,37 @@ export default function Index() {
 
   // const [darkMode, setDarkMode] = useState(true);
   const [authorized, setAuthorized] = useState(false);
-  const [token, setToken] = useState();
+  const [token, setToken] = useState(undefined);
+  const [refresh, setRefresh] = useState(undefined);
 
-  // example of usecontext
-  const swrData = { id: "2" };
-  const PretendComponent = (props) => {
-    const swrData = useContext(DataContext);
-    return <div>{swrData.id}</div>;
-  };
-  // end example
+  // swr mock
+  const swrData = { id: "swrData" };
 
   // get token from local onload
   useEffect(() => {
     const localToken = JSON.parse(localStorage.getItem("token"));
-    if (localToken) {
-      const expired = new Date() > new Date(localToken.expires_at);
-    }
-    if (!expired && !token && localToken) {
+    if (localToken && !token) {
       setToken(localToken);
     }
   }, []);
 
-  // if token changes flag authorization
+  // if token changes
   useMemo(() => {
-    if (token) setAuthorized(true);
+    if (token) {
+      const expired = new Date() > new Date(token.expires_at);
+      expired
+        ? setRefresh(undefined)
+        : setRefresh((new Date(token.expires_at) - new Date()) / 1000);
+      setAuthorized(true);
+    } else {
+      setAuthorized(false);
+    }
   }, [token]);
 
+  
+
   useEffect(() => {
-    if (authorized)
+    if (false)
       fetch("/api/submissions", {
         method: "POST",
         headers: {
@@ -76,6 +84,9 @@ export default function Index() {
         .catch((error) => console.error(error));
   }, [authorized]);
 
+  // const { refreshToken, tokenLoading, tokenError } = useRefresh(token);
+  // console.log(refreshToken);
+
   return (
     <div>
       <Head>
@@ -84,13 +95,15 @@ export default function Index() {
       </Head>
 
       <main>
+        {authorized ? (
+          `Welcome ${token.user.name}`
+        ) : (
+          <a href={url}>Authorize</a>
+        )}
+        <br />
         <DataContext.Provider value={swrData}>
-          <PretendComponent />
+          <Authorize />
         </DataContext.Provider>
-        <a href={url}>Authorize</a>
-        <br />
-        {authorized ? `Welcome ${token.user.name}` : undefined}
-        <br />
       </main>
 
       <footer>

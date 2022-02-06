@@ -8,10 +8,9 @@ export default function Token() {
 
   const router = useRouter();
 
-  // TODO: rearrange, error last, make error true if no code or state or just redirect
-  const error = router.query.error;
   const code = router.query.code;
   const state = router.query.state;
+  const error = !code || !state || router.query.error;
 
   const success = !error && code && state;
 
@@ -25,22 +24,35 @@ export default function Token() {
         code: code,
       }),
     })
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) {
+          const ex = new Error("token request failed");
+          ex.info = res.json();
+          ex.status = res.status;
+          throw ex;
+        } else {
+          return res.json();
+        }
+      })
       .then((data) => {
         console.log(data);
         return new Promise((res, rej) => {
           if (data) {
             // TODO: see if this time conversion thing can be cleaned up
-            const token = {...data, expires_at: (new Date().getTime() / 1000 + data.expires_in) * 1000}
+            const token = {
+              ...data,
+              expires_at:
+                (new Date().getTime() / 1000 + data.expires_in) * 1000,
+            };
             localStorage.setItem("token", JSON.stringify(token));
             res();
           } else {
-            rej("token storage failed");
+            rej();
           }
         });
       })
       .then(() => router.push("/"))
-      .catch((error) => console.error("error: ", error));
+      .catch((error) => console.error(error));
   }
 
   return (
@@ -50,7 +62,9 @@ export default function Token() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main>{error ? "Error" : "Success"}</main>
+      <main>
+        {error ? "Error: Unable To Request Token" : "Requesting Token"}
+      </main>
 
       <style jsx global>{`
         html,
