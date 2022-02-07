@@ -1,5 +1,5 @@
 export default async function handler(req, res) {
-  console.log("/api/refresh", req.body);
+  // console.log("/api/refresh", req.body);
   const url = "https://davistech.instructure.com/login/oauth2/token";
   await fetch(url, {
     method: "POST",
@@ -10,7 +10,7 @@ export default async function handler(req, res) {
       grant_type: "refresh_token",
       client_id: process.env.CLIENT_ID,
       client_secret: process.env.CLIENT_SECRET,
-      refresh_token: req.body,
+      refresh_token: req.body.refresh_token,
     }),
   })
     .then((canvas_res) => {
@@ -24,7 +24,7 @@ export default async function handler(req, res) {
       }
     })
     .then((data) => {
-      console.log(data);
+      // console.log("/api/refresh", data);
       res.status(200).json(JSON.stringify(data));
     })
     .catch((err) => {

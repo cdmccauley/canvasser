@@ -30,9 +30,8 @@ export default function Data(props) {
     setToken(JSON.parse(localStorage.getItem("token")));
   }, []);
 
-  const { refreshToken, tokenLoading, tokenError } = useRefresh(token);
-  console.log("USEREFRESH:", refreshToken, tokenLoading, tokenError);
-  console.log("DATA");
+  const { accessToken, tokenLoading, tokenError } = useRefresh({ token });
+  console.log("/components/data", accessToken, tokenLoading, tokenError);
 
   return (
     <DataContext.Provider value={swrData}>

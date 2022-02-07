@@ -2,14 +2,17 @@ import useSWR from "swr";
 
 import refreshFetcher from "../lib/api-refresh.js";
 
-export default function useRefresh(token) {
+export default function useRefresh(args) {
   //   console.log("data/use-refresh", token);
   const url = "/api/refresh";
-  const { data, error } = useSWR(url, refreshFetcher(token));
+
+  const { token } = args;
+
+  const { data, error } = useSWR([token ? url : null, token], refreshFetcher);
 
   return {
-    token: data,
+    accessToken: data,
     tokenLoading: !error && !data,
-    tokenError: error
-  }
+    tokenError: error,
+  };
 }
