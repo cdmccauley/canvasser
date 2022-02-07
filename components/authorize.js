@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 
-import { DataContext } from "../pages/index";
+import { DataContext } from "./data";
 
 export default function Authorize(props) {
   const swrData = useContext(DataContext);

@@ -104,6 +104,7 @@ Provide values for each variable in `.env.local`
 - `MONGODB_DB` - MongoDB database name
 - `CLIENT_ID` - Canvas ID
 - `CLIENT_SECRET` - Canvas API key
+- `NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA` - String value of 'DEVELOPMENT'
 
 #### Canvasser 0.2 Environment Variables
 
