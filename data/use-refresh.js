@@ -8,7 +8,17 @@ export default function useRefresh(args) {
 
   const { token } = args;
 
-  const { data, error } = useSWR([token ? url : null, token], refreshFetcher);
+  // console.log(new Date(token.expires_at) - new Date());
+
+  const getInterval = (latest) => {
+    return latest ? latest.expires_in * 1000 : 5000; //TODO: Math the current token for TTL
+  };
+
+  const { data, error } = useSWR([token ? url : null, token], refreshFetcher, {
+    revalidateOnFocus: false,
+    refreshWhenHidden: true,
+    refreshInterval: getInterval,
+  });
 
   return {
     accessToken: data,

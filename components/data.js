@@ -8,9 +8,10 @@ import React, {
 
 export const DataContext = createContext({});
 
-import useRefresh from "../data/use-refresh";
-
 import Authorize from "./authorize";
+
+import useRefresh from "../data/use-refresh";
+import useSubmissions from "../data/use-submissions";
 
 export default function Data(props) {
   const subdomain = "davistech";
@@ -18,8 +19,6 @@ export default function Data(props) {
   const state = "temp";
   const redirect_uri = "https://canvasser.vercel.app";
   const url = `https://${subdomain}.instructure.com/login/oauth2/auth?client_id=${client_id}&response_type=code&state=${state}&redirect_uri=${redirect_uri}`;
-
-  const swrData = { id: "swrData" };
 
   // const [darkMode, setDarkMode] = useState(true);
   const [authorized, setAuthorized] = useState(false);
@@ -31,10 +30,13 @@ export default function Data(props) {
   }, []);
 
   const { accessToken, tokenLoading, tokenError } = useRefresh({ token });
-  console.log("/components/data", accessToken, tokenLoading, tokenError);
+//   console.log("/components/data", accessToken, tokenLoading, tokenError);
 
+  const { submissions, submissionsLoading, submissionsError } = useSubmissions({ accessToken })
+//   console.log("/components/data", submissions, submissionsLoading, submissionsError);
+  
   return (
-    <DataContext.Provider value={swrData}>
+    <DataContext.Provider value={{accessToken, submissions}}>
       <Authorize />
     </DataContext.Provider>
   );
