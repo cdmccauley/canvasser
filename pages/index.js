@@ -1,45 +1,40 @@
-import React from "react";
+import React, { useState, useEffect, useMemo, createContext } from "react";
 
+export const DataContext = createContext({});
+
+import { useRouter } from "next/router";
 import Head from "next/head";
 
-import Data from "../components/data";
+import useRefresh from "../data/use-refresh";
+import useSubmissions from "../data/use-submissions";
+
+import Authorize from "../components/authorize";
 
 export default function Index() {
-  // TODO: implement state parameter in URL
-  // const subdomain = "davistech";
-  // const client_id = "140000000000311";
-  // const state = "temp";
-  // const redirect_uri = "https://canvasser.vercel.app";
-  // const url = `https://${subdomain}.instructure.com/login/oauth2/auth?client_id=${client_id}&response_type=code&state=${state}&redirect_uri=${redirect_uri}`;
-
-  // // const [darkMode, setDarkMode] = useState(true);
+  // const [darkMode, setDarkMode] = useState(true);
   // const [authorized, setAuthorized] = useState(false);
-  // const [token, setToken] = useState(undefined);
   // const [refresh, setRefresh] = useState(undefined);
 
-  // swr mock
-  // const swrData = { id: "swrData" };
+  const router = useRouter();
 
-  // // get token from local onload
-  // useEffect(() => {
-  //   const localToken = JSON.parse(localStorage.getItem("token"));
-  //   if (localToken && !token) {
-  //     setToken(localToken);
-  //   }
-  // }, []);
+  const [token, setToken] = useState(undefined);
 
-  // // if token changes
-  // useMemo(() => {
-  //   if (token) {
-  //     const expired = new Date() > new Date(token.expires_at);
-  //     expired
-  //       ? setRefresh(undefined)
-  //       : setRefresh((new Date(token.expires_at) - new Date()) / 1000);
-  //     setAuthorized(true);
-  //   } else {
-  //     setAuthorized(false);
-  //   }
-  // }, [token]);
+  useEffect(() => {
+    const localToken = JSON.parse(localStorage.getItem("token"));
+    if (!localToken) {
+      router.push("/Authorize");
+    } else {
+      setToken(localToken);
+    }
+  }, []);
+
+  const { accessToken, tokenLoading, tokenError } = useRefresh({ token });
+  //   console.log("/components/data", accessToken, tokenLoading, tokenError);
+
+  const { submissions, submissionsLoading, submissionsError } = useSubmissions({
+    accessToken,
+  });
+  //   console.log("/components/data", submissions, submissionsLoading, submissionsError);
 
   // useEffect(() => {
   //   if (false)
@@ -72,23 +67,25 @@ export default function Index() {
   //       .catch((error) => console.error(error));
   // }, [authorized]);
 
-  // const { refreshToken, tokenLoading, tokenError } = useRefresh(token);
-  // console.log("TARGET:", refreshToken, tokenLoading, tokenError);
-
   return (
     <div>
       <Head>
         <title>Canvasser</title>
         <link rel="icon" href="/favicon.ico" />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap"
+        />
       </Head>
+      <DataContext.Provider value={{ accessToken, submissions }}>
+        <header></header>
 
-      <main>
-        <Data />
-      </main>
+        <main>
+          <Authorize />
+        </main>
 
-      <footer>
-        {process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA}
-      </footer>
+        <footer>{process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA}</footer>
+      </DataContext.Provider>
 
       <style jsx global>{`
         html,
