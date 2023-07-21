@@ -3,7 +3,7 @@ import { useSWRInfinite } from "swr";
 import queueFetcher from "../libs/api-queue";
 
 const urlParameters =
-  "student_ids[]=all&include[]=assignment&workflow_state[]=submitted&workflow_state[]=pending_review&enrollment_state=active";
+  "student_ids[]=all&include[]=assignment&workflow_state[]=submitted&workflow_state[]=pending_review&enrollment_state=active&per_page=1000";
 let canvasUrl, apiKey, courses;
 
 const getKey = (pageIndex, previousPageData) => {
