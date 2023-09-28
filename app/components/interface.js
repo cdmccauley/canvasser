@@ -8,7 +8,7 @@ export default function Interface() {
   useEffect(() => {
     if (!courses) {
       console.log("get courses");
-      fetch("/api/canvas/courses")
+      fetch("/api/canvas/submissions")
         .then((res) => {
           if (res?.ok) {
             return res.json();

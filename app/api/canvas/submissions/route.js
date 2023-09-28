@@ -1,7 +1,6 @@
 import { getServerSession } from "next-auth/next";
 
 import privateClientPromise from "@/app/lib/privateMongo";
-import parseLinkHeader from "@/app/lib/parseLinkHeader";
 
 import { NextResponse } from "next/server";
 
@@ -26,8 +25,6 @@ export async function GET(request) {
       status = statuses.ACCEPTED;
 
       const search = {
-        page: request?.nextUrl?.searchParams.get("page"),
-        per_page: request?.nextUrl?.searchParams.get("per_page"),
         name: request?.nextUrl?.searchParams.get("name"),
         email: request?.nextUrl?.searchParams.get("email"),
       };
@@ -48,6 +45,8 @@ export async function GET(request) {
       const account = await accounts.findOne(query);
 
       if (account && account?.access_token && account?.expires_at) {
+        // TODO: only refresh if past/close to expires_at
+
         const root =
           process.env.NODE_ENV === "development"
             ? process.env.DEV_HOST
@@ -76,41 +75,34 @@ export async function GET(request) {
 
         if (refresh?.token) {
           const myHeaders = new Headers();
+          myHeaders.append("Content-Type", "application/json");
           myHeaders.append("Authorization", `Bearer ${refresh.token}`);
 
+          // leaving the submittedSince filter out brings in old submissions that don't seem to exist
+          const date = new Date();
+          date.setFullYear(date.getFullYear() - 1);
+
+          // https://name.instructure.com/graphiql
+          // toISOString doesn't match the format from examples, it seems to work though...
+          const submittedSince = date.toISOString();
+
+          const graphql = JSON.stringify({
+            query: `query PendingReview {\r\n      allCourses {\r\n    _id\r\n    name\r\n    sisId\r\n    submissionsConnection(filter: {states: [submitted, pending_review], submittedSince: "${submittedSince}"}) {\r\n      nodes {\r\n        _id\r\n        assignmentId\r\n        createdAt\r\n        postedAt\r\n        assignment {\r\n          _id\r\n          name\r\n        }\r\n        user {\r\n          _id\r\n          avatarUrl\r\n          sisId\r\n          sortableName\r\n        }\r\n      }\r\n    }\r\n  }\r\n}\r\n`,
+            variables: {},
+          });
+
           const requestOptions = {
-            method: "GET",
+            method: "POST",
             headers: myHeaders,
+            body: graphql,
           };
 
-          let link;
-
-          const page =
-            search?.page &&
-            parseInt(search.page) !== Number.NaN &&
-            parseInt(search.page) > 0
-              ? parseInt(search.page)
-              : 1;
-
-          const per_page =
-            search?.per_page &&
-            parseInt(search.per_page) !== Number.NaN &&
-            parseInt(search.per_page) > 0 &&
-            parseInt(search.per_page) <= 10 // maximums aren't documented, minimum is 10
-              ? parseInt(search.per_page)
-              : 10;
-
-          const params = `?page=${page}&per_page=${per_page}`;
-
           const courseRes = await fetch(
-            `${process.env.CANVAS_URL}/api/v1/courses${params}`,
+            `${process.env.CANVAS_URL}/api/graphql`,
             requestOptions
           )
             .then((res) => {
               if (res.ok) {
-                if (res.headers.has("link")) {
-                  link = parseLinkHeader(res.headers.get("link"));
-                }
                 return res.json();
               } else {
                 return res;
@@ -120,38 +112,6 @@ export async function GET(request) {
 
           status = statuses.OK;
           payload = courseRes;
-
-          if (link?.next) {
-            const myHeaders = new Headers();
-            myHeaders.append("x-api-key", process.env.API_KEY);
-
-            const requestOptions = {
-              method: "GET",
-              headers: myHeaders,
-            };
-
-            const params = {
-              name: searched ? search.name : session?.user?.name,
-              email: searched ? search.email : session?.user?.email,
-            };
-
-            const nextPage = await fetch(
-              `${root}/api/canvas/courses?page=${page + 1}&per_page=10&name=${
-                params.name
-              }&email=${params.email}`,
-              requestOptions
-            )
-              .then((res) => {
-                if (res.ok) {
-                  return res.json();
-                } else {
-                  return res;
-                }
-              })
-              .then((json) => json);
-
-            payload = [...payload, ...nextPage];
-          }
         }
       }
     }
