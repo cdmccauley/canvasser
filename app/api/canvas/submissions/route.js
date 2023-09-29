@@ -5,6 +5,9 @@ import privateClientPromise from "@/app/lib/privateMongo";
 import { NextResponse } from "next/server";
 
 export async function GET(request) {
+  if (process.env.NODE_ENV == "development")
+    console.log(new Date().toLocaleTimeString(), "submissions requested");
+
   const statuses = {
     OK: 200,
     ACCEPTED: 202,
@@ -78,12 +81,9 @@ export async function GET(request) {
           myHeaders.append("Content-Type", "application/json");
           myHeaders.append("Authorization", `Bearer ${refresh.token}`);
 
-          // leaving the submittedSince filter out brings in old submissions that don't seem to exist
+          // limit to last 180 days
           const date = new Date();
-          date.setFullYear(date.getFullYear() - 1);
-
-          // https://name.instructure.com/graphiql
-          // toISOString doesn't match the format from examples, it seems to work though...
+          date.setDate(date.getDate() - 180);
           const submittedSince = date.toISOString();
 
           const graphql = JSON.stringify({
