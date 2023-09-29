@@ -1,5 +1,9 @@
 import { useState, useEffect } from "react";
 
+//
+import { DataGrid } from "@mui/x-data-grid";
+//
+
 const getData = (setData) =>
   fetch("/api/canvas/submissions")
     .then((res) => {
@@ -21,11 +25,27 @@ const cleanup = (timeout) => {
   }
 };
 
+//
+const columns = [
+  { field: "name", headerName: "Name", flex: 1 },
+  { field: "url", headerName: "URL", flex: 1 },
+];
+
+const getLink = (url) => (
+  <a href={url} target="_blank">
+    {url}
+  </a>
+);
+//
+
 export default function Interface() {
   const [data, setData] = useState();
   const [refreshTimeout, setRefreshTimeout] = useState();
   const [courses, setCourses] = useState();
   const [submissions, setSubmissions] = useState();
+  //
+  const [rows, setRows] = useState();
+  //
 
   useEffect(() => {
     if (!data) {
@@ -73,8 +93,30 @@ export default function Interface() {
   }, [courses]);
 
   useEffect(() => {
-    if (submissions) console.log("submissions", submissions);
+    //
+    if (submissions) {
+      console.log("submissions", submissions);
+
+      setRows(
+        submissions
+          .map((c) => {
+            return c.submissions.map((s, i) => {
+              return {
+                name: s?.assignment?.name,
+                url: `https://davistech.instructure.com/courses/${c.id}/gradebook/speed_grader?assignment_id=${s.assignmentId}&student_id=${s.user._id}`,
+              };
+            });
+          })
+          .flat()
+          .map((s, i) => {
+            return { id: i, ...s };
+          })
+      );
+    }
+    //
   }, [submissions]);
 
-  return <div>Interface</div>;
+  return (
+    <div>{rows ? <DataGrid rows={rows} columns={columns} /> : undefined}</div>
+  );
 }
