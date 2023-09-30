@@ -87,7 +87,7 @@ export async function GET(request) {
           const submittedSince = date.toISOString();
 
           const graphql = JSON.stringify({
-            query: `query PendingReview {\r\n      allCourses {\r\n    _id\r\n    name\r\n    sisId\r\n    submissionsConnection(filter: {states: [submitted, pending_review], submittedSince: "${submittedSince}"}) {\r\n      nodes {\r\n        _id\r\n        assignmentId\r\n        createdAt\r\n        postedAt\r\n        assignment {\r\n          _id\r\n          name\r\n        }\r\n        user {\r\n          _id\r\n          avatarUrl\r\n          sisId\r\n          sortableName\r\n        }\r\n      }\r\n    }\r\n  }\r\n}\r\n`,
+            query: `query PendingReview {\r\n  allCourses {\r\n    _id\r\n    name\r\n    sisId\r\n    submissionsConnection(filter: {states: [submitted, pending_review], submittedSince: \"${submittedSince}\"}) {\r\n      edges {\r\n        node {\r\n          submittedAt\r\n          assignment {\r\n            _id\r\n            courseId\r\n            name\r\n          }\r\n          user {\r\n            _id\r\n            avatarUrl\r\n            name\r\n            sisId\r\n            sortableName\r\n            enrollments(currentOnly: true, excludeConcluded: true) {\r\n              course {\r\n                _id\r\n                courseCode\r\n                name\r\n                sisId\r\n              }\r\n              sisRole\r\n              state\r\n            }\r\n          }\r\n        }\r\n      }\r\n    }\r\n  }\r\n}\r\n`,
             variables: {},
           });
 
