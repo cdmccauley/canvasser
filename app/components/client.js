@@ -11,17 +11,17 @@ import Default from "./default";
 export default function Client() {
   const { data: session, status } = useSession();
 
-  useEffect(() => {
-    console.log("loaded");
-  }, []);
+  // useEffect(() => {
+  //   console.log("loaded");
+  // }, []);
 
-  useEffect(() => {
-    if (session) console.log("session", session);
-  }, [session]);
+  // useEffect(() => {
+  //   if (session) console.log("session", session);
+  // }, [session]);
 
-  useEffect(() => {
-    if (status) console.log("status", status);
-  }, [status]);
+  // useEffect(() => {
+  //   if (status) console.log("status", status);
+  // }, [status]);
 
   return (
     <div>

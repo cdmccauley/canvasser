@@ -1,32 +1,158 @@
 import { useState, useEffect } from "react";
 
-//
 import { DataGrid } from "@mui/x-data-grid";
-//
+
+import Checkbox from "@mui/material/Checkbox";
+
+import { useSession } from "next-auth/react";
 
 const getData = (setData) =>
-  fetch("/api/canvas/submissions")
-    .then((res) => {
-      if (res?.ok) {
-        return res.json();
-      } else {
-        return res;
-      }
-    })
-    .then((json) => setData(json))
-    .catch((e) => console.error("error", e));
+  setData
+    ? fetch("/api/canvas/submissions")
+        .then((res) => {
+          if (res?.ok) {
+            return res.json();
+          } else {
+            return res;
+          }
+        })
+        .then((json) => setData(json))
+        .catch((e) => console.error("error", e))
+    : null;
+
+const getReserved = (course, assignment, student, setReserve) =>
+  course && assignment && student && setReserve
+    ? fetch(`/api/reserve/${course}/${assignment}/${student}`)
+        .then((res) => res.json())
+        .then((json) => setReserve(json))
+        .catch((e) => console.error("error", e))
+    : null;
+
+const requestReserve = (course, assignment, student, setReserve) =>
+  course && assignment && student && setReserve
+    ? fetch(`/api/reserve/${course}/${assignment}/${student}`, {
+        method: "POST",
+      })
+        .then((res) => {
+          if (res?.ok) {
+            return res.json();
+          } else {
+            return res;
+          }
+        })
+        .then((json) => setReserve(json))
+        .catch((e) => console.error("error", e))
+    : null;
 
 const cleanup = (timeout) => {
-  if (timeout) {
-    console.log("clearing timeout");
-    clearTimeout(timeout);
-  } else {
-    console.log("no timeout");
-  }
+  if (timeout) clearTimeout(timeout);
+};
+
+const Status = ({ params }) => {
+  const [checked, setChecked] = useState(false);
+  const [disabled, setDisabled] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const [refreshTimeout, setRefreshTimeout] = useState(undefined);
+  const [reserve, setReserve] = useState(false);
+
+  const { data: session } = useSession();
+
+  useEffect(() => {
+    if (!loaded) setLoaded(true);
+    // cleanup on unmount
+    return () => cleanup(refreshTimeout);
+  }, []);
+
+  useEffect(() => {
+    if (loaded) {
+      if (refreshTimeout) {
+        cleanup(refreshTimeout);
+      }
+
+      getReserved(
+        params?.row?.courseId,
+        params?.row?.assignmentId,
+        params?.row?.studentId,
+        setReserve
+      );
+
+      const seconds = 1000 * 15;
+      setRefreshTimeout(
+        setTimeout(
+          () =>
+            getReserved(
+              params?.row?.courseId,
+              params?.row?.assignmentId,
+              params?.row?.studentId,
+              setReserve
+            ),
+          seconds
+        )
+      );
+    }
+  }, [loaded]);
+
+  // reserve
+  useEffect(() => {
+    if (refreshTimeout) {
+      cleanup(refreshTimeout);
+    }
+
+    const seconds = 1000 * 15;
+    setRefreshTimeout(
+      setTimeout(
+        () =>
+          getReserved(
+            params?.row?.courseId,
+            params?.row?.assignmentId,
+            params?.row?.studentId,
+            setReserve
+          ),
+        seconds
+      )
+    );
+
+    if (!reserve?.by) {
+      setChecked(false);
+      setDisabled(false);
+    } else if (reserve?.by && reserve?.by == session?.user?.email) {
+      setChecked(true);
+      setDisabled(false);
+    } else {
+      setChecked(true);
+      setDisabled(true);
+    }
+  }, [reserve]);
+
+  const handleChange = (event) => {
+    requestReserve(
+      params?.row?.courseId,
+      params?.row?.assignmentId,
+      params?.row?.studentId,
+      setReserve
+    );
+  };
+
+  return (
+    <Checkbox
+      disabled={disabled}
+      checked={checked}
+      onChange={handleChange}
+      size="small"
+    />
+  );
 };
 
 //
 const columns = [
+  {
+    field: "status",
+    headerName: "Status",
+    flex: 0,
+    disableColumnMenu: true,
+    sortable: false,
+    renderCell: (params) => <Status params={params} />,
+  },
   { field: "course", headerName: "Course", flex: 1 },
   {
     field: "assignment",
@@ -43,23 +169,12 @@ const columns = [
   },
 ];
 
-const SubmissionLink = ({ url }) => {
-  return (
-    <a href={url} target="_blank">
-      {url}
-    </a>
-  );
-};
-//
-
 export default function Interface() {
   const [data, setData] = useState();
   const [refreshTimeout, setRefreshTimeout] = useState();
   const [courses, setCourses] = useState();
   const [submissions, setSubmissions] = useState();
-  //
   const [rows, setRows] = useState();
-  //
 
   useEffect(() => {
     if (!data) {
@@ -118,7 +233,7 @@ export default function Interface() {
             submissions: parsed[`${c._id}`],
           };
         })
-        .filter((c) => c.submissions); // filter out the courses were all submissions are inactive users
+        .filter((c) => c.submissions); // filter out the courses where all submissions are inactive users
 
       setSubmissions(coursesWithActiveSubmissions);
     } else if (data?.status) {
@@ -127,19 +242,15 @@ export default function Interface() {
   }, [data]);
 
   useEffect(() => {
-    if (courses) console.log("courses", courses);
-  }, [courses]);
-
-  useEffect(() => {
-    //
     if (submissions) {
-      console.log("submissions", submissions);
-
       setRows(
         submissions
           .map((c) => {
             return c.submissions.map((s, i) => {
               return {
+                courseId: c?.id,
+                assignmentId: s?.assignment?._id,
+                studentId: s?.user?._id,
                 course: c?.name,
                 name: s?.assignment?.name,
                 assignment: `https://davistech.instructure.com/courses/${c.id}/gradebook/speed_grader?assignment_id=${s.assignment._id}&student_id=${s.user._id}`,
@@ -152,10 +263,13 @@ export default function Interface() {
           })
       );
     }
-    //
   }, [submissions]);
 
   return (
-    <div>{rows ? <DataGrid rows={rows} columns={columns} /> : undefined}</div>
+    <div>
+      {rows ? (
+        <DataGrid disableRowSelectionOnClick rows={rows} columns={columns} />
+      ) : undefined}
+    </div>
   );
 }
