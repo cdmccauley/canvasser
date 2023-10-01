@@ -1,14 +1,9 @@
-"use client";
-
-import { useSession } from "next-auth/react";
-
-import SignedOut from "./signedOut";
-import SignedIn from "./signedIn";
+import { useSession, signIn, signOut } from "next-auth/react";
 
 import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
-import Container from "@mui/material/Container";
+import Button from "@mui/material/Button";
 
 export default function Header() {
   const { status } = useSession();
@@ -20,9 +15,21 @@ export default function Header() {
           Canvasser
         </Typography>
         {status === "unauthenticated" ? (
-          <SignedOut />
+          <Button
+            color="inherit"
+            variant="outlined"
+            onClick={() => signIn("Canvas")}
+          >
+            Sign In
+          </Button>
         ) : status === "authenticated" ? (
-          <SignedIn />
+          <Button
+            color="inherit"
+            variant="outlined"
+            onClick={() => signOut("Canvas")}
+          >
+            Sign Out
+          </Button>
         ) : undefined}
       </Toolbar>
     </AppBar>

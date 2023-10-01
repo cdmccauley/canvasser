@@ -2,147 +2,13 @@ import { useState, useEffect } from "react";
 
 import { DataGrid } from "@mui/x-data-grid";
 
-import Checkbox from "@mui/material/Checkbox";
+import Loading from "./loading";
+import Status from "./status";
 
-import { useSession } from "next-auth/react";
+import { getData } from "../lib/fetchers";
+import { cleanup } from "../lib/helpers";
 
-const getData = (setData) =>
-  setData
-    ? fetch("/api/canvas/submissions")
-        .then((res) => {
-          if (res?.ok) {
-            return res.json();
-          } else {
-            return res;
-          }
-        })
-        .then((json) => setData(json))
-        .catch((e) => console.error("error", e))
-    : null;
-
-const getReserved = (course, assignment, student, setReserve) =>
-  course && assignment && student && setReserve
-    ? fetch(`/api/reserve/${course}/${assignment}/${student}`)
-        .then((res) => res.json())
-        .then((json) => setReserve(json))
-        .catch((e) => console.error("error", e))
-    : null;
-
-const requestReserve = (course, assignment, student, setReserve) =>
-  course && assignment && student && setReserve
-    ? fetch(`/api/reserve/${course}/${assignment}/${student}`, {
-        method: "POST",
-      })
-        .then((res) => {
-          if (res?.ok) {
-            return res.json();
-          } else {
-            return res;
-          }
-        })
-        .then((json) => setReserve(json))
-        .catch((e) => console.error("error", e))
-    : null;
-
-const cleanup = (timeout) => {
-  if (timeout) clearTimeout(timeout);
-};
-
-const Status = ({ params }) => {
-  const [checked, setChecked] = useState(false);
-  const [disabled, setDisabled] = useState(false);
-  const [loaded, setLoaded] = useState(false);
-  const [refreshTimeout, setRefreshTimeout] = useState(undefined);
-  const [reserve, setReserve] = useState(false);
-
-  const { data: session } = useSession();
-
-  useEffect(() => {
-    if (!loaded) setLoaded(true);
-    // cleanup on unmount
-    return () => cleanup(refreshTimeout);
-  }, []);
-
-  useEffect(() => {
-    if (loaded) {
-      if (refreshTimeout) {
-        cleanup(refreshTimeout);
-      }
-
-      getReserved(
-        params?.row?.courseId,
-        params?.row?.assignmentId,
-        params?.row?.studentId,
-        setReserve
-      );
-
-      const seconds = 1000 * 15;
-      setRefreshTimeout(
-        setTimeout(
-          () =>
-            getReserved(
-              params?.row?.courseId,
-              params?.row?.assignmentId,
-              params?.row?.studentId,
-              setReserve
-            ),
-          seconds
-        )
-      );
-    }
-  }, [loaded]);
-
-  // reserve
-  useEffect(() => {
-    if (refreshTimeout) {
-      cleanup(refreshTimeout);
-    }
-
-    const seconds = 1000 * 15;
-    setRefreshTimeout(
-      setTimeout(
-        () =>
-          getReserved(
-            params?.row?.courseId,
-            params?.row?.assignmentId,
-            params?.row?.studentId,
-            setReserve
-          ),
-        seconds
-      )
-    );
-
-    if (!reserve?.by) {
-      setChecked(false);
-      setDisabled(false);
-    } else if (reserve?.by && reserve?.by == session?.user?.email) {
-      setChecked(true);
-      setDisabled(false);
-    } else {
-      setChecked(true);
-      setDisabled(true);
-    }
-  }, [reserve]);
-
-  const handleChange = (event) => {
-    requestReserve(
-      params?.row?.courseId,
-      params?.row?.assignmentId,
-      params?.row?.studentId,
-      setReserve
-    );
-  };
-
-  return (
-    <Checkbox
-      disabled={disabled}
-      checked={checked}
-      onChange={handleChange}
-      size="small"
-    />
-  );
-};
-
+// column structure and options
 const columns = [
   {
     field: "status",
@@ -175,6 +41,7 @@ export default function Interface() {
   const [submissions, setSubmissions] = useState();
   const [rows, setRows] = useState();
 
+  // []
   useEffect(() => {
     if (!data) {
       getData(setData);
@@ -183,10 +50,22 @@ export default function Interface() {
     return () => cleanup(refreshTimeout);
   }, []);
 
+  // [data]
   useEffect(() => {
     if (refreshTimeout) {
       cleanup(refreshTimeout);
     }
+
+    // data for production debugs
+    const date = new Date();
+    localStorage.setItem(
+      "last_submission_refresh",
+      JSON.stringify({
+        epoch: date.valueOf(),
+        utc: date.toUTCString(),
+        local: date.toLocaleString(),
+      })
+    );
 
     const seconds = 1000 * 15;
     setRefreshTimeout(setTimeout(() => getData(setData), seconds));
@@ -235,17 +114,31 @@ export default function Interface() {
         .filter((c) => c.submissions); // filter out the courses where all submissions are inactive users
 
       setSubmissions(coursesWithActiveSubmissions);
-    } else if (data?.status) {
+    } else if (data) {
       // TODO: send user error feedback
+      // data for production debugs
+      const date = new Date();
+      localStorage.setItem(
+        "last_unexpected_data",
+        JSON.stringify({
+          epoch: date.valueOf(),
+          utc: date.toUTCString(),
+          local: date.toLocaleString(),
+          data: data,
+        })
+      );
+      console.warn("unexpected data", data);
     }
   }, [data]);
 
+  // [submissions]
   useEffect(() => {
     if (submissions) {
+      // set row props
       setRows(
         submissions
           .map((c) => {
-            return c.submissions.map((s, i) => {
+            return c.submissions.map((s) => {
               return {
                 courseId: c?.id,
                 assignmentId: s?.assignment?._id,
@@ -256,16 +149,16 @@ export default function Interface() {
               };
             });
           })
-          .flat()
+          .flat() // merge returned sub arrays
           .map((s, i) => {
-            return { id: i, ...s };
+            return { id: i, ...s }; // assign an id field for react
           })
       );
     }
   }, [submissions]);
 
   return (
-    <div>
+    <>
       {rows ? (
         <DataGrid
           sx={{ m: 2 }}
@@ -273,7 +166,9 @@ export default function Interface() {
           rows={rows}
           columns={columns}
         />
-      ) : undefined}
-    </div>
+      ) : (
+        <Loading />
+      )}
+    </>
   );
 }

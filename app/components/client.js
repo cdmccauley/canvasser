@@ -10,16 +10,18 @@ import Interface from "./interface";
 export default function Client() {
   const { status } = useSession();
 
-  return status === "loading" ? (
-    <Loading />
-  ) : status === "unauthenticated" ? (
-    <Header />
-  ) : status === "authenticated" ? (
+  return (
     <>
       <Header />
-      <Interface />
+      {status === "loading" ? (
+        <Loading />
+      ) : status === "unauthenticated" ? (
+        <></>
+      ) : status === "authenticated" ? (
+        <Interface />
+      ) : (
+        <Default />
+      )}
     </>
-  ) : (
-    <Default />
   );
 }
