@@ -143,7 +143,6 @@ const Status = ({ params }) => {
   );
 };
 
-//
 const columns = [
   {
     field: "status",
@@ -268,7 +267,12 @@ export default function Interface() {
   return (
     <div>
       {rows ? (
-        <DataGrid disableRowSelectionOnClick rows={rows} columns={columns} />
+        <DataGrid
+          sx={{ m: 2 }}
+          disableRowSelectionOnClick
+          rows={rows}
+          columns={columns}
+        />
       ) : undefined}
     </div>
   );

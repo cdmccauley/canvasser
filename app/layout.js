@@ -5,8 +5,8 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
-  const style = { backgroundColor: "#555", color: "#FFF" };
-  // provide nextauth session to client
+  const style = { margin: 0 };
+  // provide nextauth session and theme to client
   return (
     <html lang="en">
       <body style={style}>
