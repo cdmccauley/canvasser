@@ -47,9 +47,15 @@ export async function GET(request) {
 
       const account = await accounts.findOne(query);
 
-      if (account && account?.access_token && account?.expires_at) {
-        // TODO: only refresh if past/close to expires_at
+      const date = new Date();
+      let token = account?.access_token;
 
+      if (
+        account &&
+        token &&
+        account?.expires_at &&
+        account?.expires_at * 1000 <= date.valueOf()
+      ) {
         const root =
           process.env.NODE_ENV === "development"
             ? process.env.DEV_HOST
@@ -76,43 +82,44 @@ export async function GET(request) {
           })
           .then((json) => json);
 
-        if (refresh?.token) {
-          const myHeaders = new Headers();
-          myHeaders.append("Content-Type", "application/json");
-          myHeaders.append("Authorization", `Bearer ${refresh.token}`);
+        token = refresh?.token;
+      }
 
-          // limit to last 180 days
-          const date = new Date();
-          date.setDate(date.getDate() - 180);
-          const submittedSince = date.toISOString();
+      if (account && token) {
+        const myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+        myHeaders.append("Authorization", `Bearer ${token}`);
 
-          const graphql = JSON.stringify({
-            query: `query PendingReview {\r\n  allCourses {\r\n    _id\r\n    name\r\n    sisId\r\n    submissionsConnection(filter: {states: [submitted, pending_review], submittedSince: \"${submittedSince}\"}) {\r\n      edges {\r\n        node {\r\n          submittedAt\r\n          assignment {\r\n            _id\r\n            courseId\r\n            name\r\n          }\r\n          user {\r\n            _id\r\n            avatarUrl\r\n            name\r\n            sisId\r\n            sortableName\r\n            enrollments(currentOnly: true, excludeConcluded: true) {\r\n              course {\r\n                _id\r\n                courseCode\r\n                name\r\n                sisId\r\n              }\r\n              sisRole\r\n              state\r\n            }\r\n          }\r\n        }\r\n      }\r\n    }\r\n  }\r\n}\r\n`,
-            variables: {},
-          });
+        // limit to last 180 days
+        date.setDate(date.getDate() - 180);
+        const submittedSince = date.toISOString();
 
-          const requestOptions = {
-            method: "POST",
-            headers: myHeaders,
-            body: graphql,
-          };
+        const graphql = JSON.stringify({
+          query: `query PendingReview {\r\n  allCourses {\r\n    _id\r\n    name\r\n    sisId\r\n    submissionsConnection(filter: {states: [submitted, pending_review], submittedSince: \"${submittedSince}\"}) {\r\n      edges {\r\n        node {\r\n          submittedAt\r\n          assignment {\r\n            _id\r\n            courseId\r\n            name\r\n          }\r\n          user {\r\n            _id\r\n            avatarUrl\r\n            name\r\n            sisId\r\n            sortableName\r\n            enrollments(currentOnly: true, excludeConcluded: true) {\r\n              course {\r\n                _id\r\n                courseCode\r\n                name\r\n                sisId\r\n              }\r\n              sisRole\r\n              state\r\n            }\r\n          }\r\n        }\r\n      }\r\n    }\r\n  }\r\n}\r\n`,
+          variables: {},
+        });
 
-          const courseRes = await fetch(
-            `${process.env.CANVAS_URL}/api/graphql`,
-            requestOptions
-          )
-            .then((res) => {
-              if (res.ok) {
-                return res.json();
-              } else {
-                return res;
-              }
-            })
-            .then((json) => json);
+        const requestOptions = {
+          method: "POST",
+          headers: myHeaders,
+          body: graphql,
+        };
 
-          status = statuses.OK;
-          payload = courseRes;
-        }
+        const courseRes = await fetch(
+          `${process.env.CANVAS_URL}/api/graphql`,
+          requestOptions
+        )
+          .then((res) => {
+            if (res.ok) {
+              return res.json();
+            } else {
+              return res;
+            }
+          })
+          .then((json) => json);
+
+        status = statuses.OK;
+        payload = courseRes;
       }
     }
   } catch (e) {

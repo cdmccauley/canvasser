@@ -63,7 +63,6 @@ export async function GET(request, { params }) {
         const query = {
           course: search.course,
           assignment: search.assignment,
-          student: search.student,
         };
 
         const reserved = await active.findOne(query);
