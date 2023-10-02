@@ -14,8 +14,6 @@ import Queue from "../components/queue.js";
 import Notifications from "../components/notifications.js";
 import Error from "../components/error.js";
 
-// import styles from '../styles/Index.module.css'
-
 export default function Index() {
   const [darkMode, setDarkMode] = useState(true);
   const [authorized, setAuthorized] = useState(false);
