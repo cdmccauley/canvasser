@@ -92,6 +92,11 @@ export default function Status({ params }) {
       setChecked(true);
       setDisabled(false);
     } else {
+      if (checked && !disabled) {
+        const notification = new Notification(
+          `🚨 Unable To Reserve Assignment 🚨\n${params?.row?.name}`
+        );
+      }
       setChecked(true);
       setDisabled(true);
     }

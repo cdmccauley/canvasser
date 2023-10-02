@@ -124,7 +124,7 @@ export default function Interface() {
           epoch: date.valueOf(),
           utc: date.toUTCString(),
           local: date.toLocaleString(),
-          data: data,
+          data: JSON.stringify(data),
         })
       );
       console.warn("unexpected data", data);
@@ -157,9 +157,18 @@ export default function Interface() {
     }
   }, [submissions]);
 
+  // [rows]
+  useEffect(() => {
+    if (rows && rows?.length) {
+      document.title = `Canvasser (${rows.length})`;
+    } else {
+      document.title = `Canvasser`;
+    }
+  }, [rows]);
+
   return (
     <>
-      {rows ? (
+      {rows && rows?.length > 0 ? (
         <DataGrid
           sx={{ m: 2 }}
           disableRowSelectionOnClick

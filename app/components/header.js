@@ -5,6 +5,8 @@ import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 
+import Notify from "./notify";
+
 export default function Header() {
   const { status } = useSession();
 
@@ -23,13 +25,16 @@ export default function Header() {
             Sign In
           </Button>
         ) : status === "authenticated" ? (
-          <Button
-            color="inherit"
-            variant="outlined"
-            onClick={() => signOut("Canvas")}
-          >
-            Sign Out
-          </Button>
+          <div>
+            <Notify />
+            <Button
+              color="inherit"
+              variant="outlined"
+              onClick={() => signOut("Canvas")}
+            >
+              Sign Out
+            </Button>
+          </div>
         ) : undefined}
       </Toolbar>
     </AppBar>
