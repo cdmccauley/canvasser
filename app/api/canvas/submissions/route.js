@@ -1,4 +1,5 @@
 import { getServerSession } from "next-auth/next";
+import { authOptions } from "../../auth/[...nextauth]/route";
 
 import privateClientPromise from "@/app/lib/privateMongo";
 
@@ -22,14 +23,14 @@ export async function GET(request) {
 
   try {
     const apiKey = request.headers.get("x-api-key");
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
 
     if (apiKey === process.env.API_KEY || session) {
       status = statuses.ACCEPTED;
 
       const search = {
         name: request?.nextUrl?.searchParams.get("name"),
-        email: request?.nextUrl?.searchParams.get("email"),
+        id: request?.nextUrl?.searchParams.get("id"),
       };
 
       const searched =
@@ -41,8 +42,8 @@ export async function GET(request) {
 
       // this query may not apply to all users
       const query = {
-        "profile.name": searched ? search.name : session?.user?.name,
-        "profile.email": searched ? search.email : session?.user?.email,
+        "user.name": searched ? search.name : session?.user?.name,
+        providerAccountId: searched ? search.id : session?.user?.id,
       };
 
       const account = await accounts.findOne(query);

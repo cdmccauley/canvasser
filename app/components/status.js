@@ -88,7 +88,7 @@ export default function Status({ params }) {
     if (!reserve?.by) {
       setChecked(false);
       setDisabled(false);
-    } else if (reserve?.by && reserve?.by == session?.user?.email) {
+    } else if (reserve?.by && reserve?.by == session?.user?.id) {
       setChecked(true);
       setDisabled(false);
     } else {

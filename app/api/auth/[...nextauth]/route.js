@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import privateClientPromise from "@/app/lib/privateMongo";
 
-const handler = NextAuth({
+export const authOptions = {
   // custom provider definition
   // scope options available?
   // - https://canvas.instructure.com/doc/api/all_resources.html
@@ -30,6 +30,8 @@ const handler = NextAuth({
         const oauth = await mongo.db("oauth");
         const accounts = await oauth.collection("accounts");
 
+        const date = new Date();
+
         // upsert after every sign in to get most recent token
         // TODO: get token and delete it instead of overwriting
         // - https://canvas.instructure.com/doc/api/file.oauth_endpoints.html#delete-login-oauth2-token
@@ -38,8 +40,25 @@ const handler = NextAuth({
           "user.id": account.user.id,
           "user.global_id": account.user.global_id,
         };
-        const update = { $set: { ...account, profile } };
+
+        const update = {
+          $set: {
+            ...account,
+            profile,
+            last_login: {
+              utc: date.toUTCString(),
+              epoch: date.valueOf(),
+            },
+            updated: {
+              by: "/api/auth/[...nextauth]",
+              utc: date.toUTCString(),
+              epoch: date.valueOf(),
+            },
+          },
+        };
+
         const options = { upsert: true };
+
         await accounts.updateOne(query, update, options);
       } catch (e) {
         console.error("signIn error", e);
@@ -54,21 +73,21 @@ const handler = NextAuth({
     async session({ session, user, token }) {
       try {
         //// add data to client session from server
-        if (!session?.avatar_url) {
+        if (session?.user?.name && token?.sub && !session?.user?.id) {
           const mongo = await privateClientPromise;
           const oauth = await mongo.db("oauth");
           const accounts = await oauth.collection("accounts");
 
           // this query may not apply to all users
           const query = {
-            "profile.name": session.user.name,
-            "profile.email": session.user.email,
+            "user.name": session.user.name,
+            providerAccountId: token.sub,
           };
 
           const account = await accounts.findOne(query);
 
-          if (account?.profile?.avatar_url)
-            session.user.avatar_url = account?.profile?.avatar_url;
+          if (account?.providerAccountId)
+            session.user.id = account?.providerAccountId;
         }
       } catch (e) {
         console.error("session error", e);
@@ -81,6 +100,8 @@ const handler = NextAuth({
     //   return token;
     // },
   },
-});
+};
+
+const handler = NextAuth(authOptions);
 
 export { handler as GET, handler as POST };

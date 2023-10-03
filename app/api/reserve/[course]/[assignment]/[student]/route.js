@@ -1,4 +1,5 @@
 import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 import privateClientPromise from "@/app/lib/privateMongo";
 
@@ -23,7 +24,7 @@ export async function GET(request, { params }) {
 
   try {
     const apiKey = request.headers.get("x-api-key");
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
 
     if (apiKey === process.env.API_KEY || session) {
       status = statuses.NOT_FOUND;
@@ -33,7 +34,7 @@ export async function GET(request, { params }) {
         assignment: params.assignment,
         student: params.student,
         name: params.name,
-        email: params.email,
+        id: params.id,
       };
 
       const searched =
@@ -42,7 +43,7 @@ export async function GET(request, { params }) {
         search.assignment &&
         search.student &&
         search.name &&
-        search.email;
+        search.id;
 
       const mongo = await privateClientPromise;
       const oauth = await mongo.db("oauth");
@@ -50,8 +51,8 @@ export async function GET(request, { params }) {
 
       // this query may not apply to all users
       const query = {
-        "profile.name": searched ? search.name : session?.user?.name,
-        "profile.email": searched ? search.email : session?.user?.email,
+        "user.name": searched ? search.name : session?.user?.name,
+        providerAccountId: searched ? search.id : session?.user?.id,
       };
 
       const account = await accounts.findOne(query);
@@ -63,6 +64,7 @@ export async function GET(request, { params }) {
         const query = {
           course: search.course,
           assignment: search.assignment,
+          student: search.student,
         };
 
         const reserved = await active.findOne(query);
@@ -103,7 +105,7 @@ export async function POST(request, { params }) {
 
   try {
     const apiKey = request.headers.get("x-api-key");
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
 
     if (apiKey === process.env.API_KEY || session) {
       status = statuses.NOT_FOUND;
@@ -113,7 +115,7 @@ export async function POST(request, { params }) {
         assignment: params.assignment,
         student: params.student,
         name: params.name,
-        email: params.email,
+        id: params.id,
       };
 
       const searched =
@@ -122,7 +124,7 @@ export async function POST(request, { params }) {
         search.assignment &&
         search.student &&
         search.name &&
-        search.email;
+        search.id;
 
       const mongo = await privateClientPromise;
       const oauth = await mongo.db("oauth");
@@ -130,8 +132,8 @@ export async function POST(request, { params }) {
 
       // this query may not apply to all users
       const query = {
-        "profile.name": searched ? search.name : session?.user?.name,
-        "profile.email": searched ? search.email : session?.user?.email,
+        "user.name": searched ? search.name : session?.user?.name,
+        providerAccountId: searched ? search.id : session?.user?.id,
       };
 
       const account = await accounts.findOne(query);
@@ -148,7 +150,7 @@ export async function POST(request, { params }) {
 
         const reserved = await active.findOne(query);
 
-        const by = searched ? search.email : session?.user?.email;
+        const by = searched ? search.id : session?.user?.id;
 
         if (reserved && reserved?.by == by) {
           await active.deleteOne({
@@ -161,11 +163,13 @@ export async function POST(request, { params }) {
         } else if (reserved) {
           payload = { reserved: true, by: reserved.by };
         } else {
+          const date = new Date();
           await active.insertOne({
             course: search.course,
             assignment: search.assignment,
             student: search.student,
             by: by,
+            created: { epoch: date.valueOf(), utc: date.toUTCString() },
           });
           payload = { reserved: true, by: by };
         }
