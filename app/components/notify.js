@@ -2,7 +2,15 @@ import { useState, useEffect } from "react";
 
 import Button from "@mui/material/Button";
 
-export default function Notify({ params }) {
+const handleCheck = () => {
+  if (!("Notification" in window) || Notification.permission === "granted") {
+    return false;
+  } else if (Notification.permission !== "denied") {
+    return true;
+  }
+};
+
+export default function Notify() {
   const [loaded, setLoaded] = useState();
   const [displayed, setDisplayed] = useState(true);
 
@@ -11,25 +19,18 @@ export default function Notify({ params }) {
     if (!loaded) setLoaded(true);
   }, []);
 
-  // [Notification.permission]
+  // [loaded]
   useEffect(() => {
-    if (loaded)
-      if (
-        !("Notification" in window) ||
-        Notification.permission === "granted"
-      ) {
-        setDisplayed(false);
-      } else if (Notification.permission !== "denied") {
-        setDisplayed(true);
-      }
-  }, [Notification.permission]);
+    if (loaded) setDisplayed(handleCheck());
+  }, [loaded]);
 
   const handleClick = (event) => {
     Notification.requestPermission().then((permission) => {
       if (permission === "granted") {
         setDisplayed(false);
         const notification = new Notification(
-          "Canvasser notifications enabled"
+          "Canvasser Notification Confirmation",
+          { body: "Notifications enabled" }
         );
       }
     });

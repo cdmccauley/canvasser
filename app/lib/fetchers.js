@@ -12,17 +12,23 @@ export const getData = (setData) =>
         .catch((e) => console.error("error", e))
     : null;
 
-export const getReserved = (course, assignment, student, setReserve) =>
-  course && assignment && student && setReserve
-    ? fetch(`/api/reserve/${course}/${assignment}/${student}`)
-        .then((res) => res.json()) // changing this causes errors
-        .then((json) => setReserve(json))
+export const getStatus = (setStatus) =>
+  setStatus
+    ? fetch("/api/submissions/status")
+        .then((res) => {
+          if (res?.ok) {
+            return res.json();
+          } else {
+            return res;
+          }
+        })
+        .then((json) => setStatus(json))
         .catch((e) => console.error("error", e))
     : null;
 
 export const requestReserve = (course, assignment, student, setReserve) =>
   course && assignment && student && setReserve
-    ? fetch(`/api/reserve/${course}/${assignment}/${student}`, {
+    ? fetch(`/api/submissions/reserve/${course}/${assignment}/${student}`, {
         method: "POST",
       })
         .then((res) => {

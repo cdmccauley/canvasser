@@ -1,12 +1,20 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, createContext } from "react";
 
 import { DataGrid } from "@mui/x-data-grid";
+
+import { Link } from "@mui/material";
 
 import Loading from "./loading";
 import Status from "./status";
 
-import { getData } from "../lib/fetchers";
-import { cleanup } from "../lib/helpers";
+import { getData, getStatus } from "../lib/fetchers";
+
+export const StatusContext = createContext();
+
+// functions
+export const cleanup = (timeout) => {
+  if (timeout) clearTimeout(timeout);
+};
 
 // column structure and options
 const columns = [
@@ -24,9 +32,9 @@ const columns = [
     headerName: "Assignment",
     flex: 1,
     renderCell: (params) => (
-      <a href={params.row.assignment} target="_blank">
+      <Link href={params.row.assignment} target="_blank">
         {params.row.name}
-      </a>
+      </Link>
     ),
     valueGetter: (params) => {
       return params.row.name;
@@ -40,6 +48,7 @@ export default function Interface() {
   const [courses, setCourses] = useState();
   const [submissions, setSubmissions] = useState();
   const [rows, setRows] = useState();
+  const [statuses, setStatuses] = useState();
 
   // []
   useEffect(() => {
@@ -134,6 +143,20 @@ export default function Interface() {
   // [submissions]
   useEffect(() => {
     if (submissions) {
+      // data for production debugs
+      const date = new Date();
+      localStorage.setItem(
+        "last_status_refresh",
+        JSON.stringify({
+          epoch: date.valueOf(),
+          utc: date.toUTCString(),
+          local: date.toLocaleString(),
+          statuses: JSON.stringify(statuses),
+        })
+      );
+
+      getStatus(setStatuses);
+
       // set row props
       setRows(
         submissions
@@ -169,12 +192,14 @@ export default function Interface() {
   return (
     <>
       {rows && rows?.length > 0 ? (
-        <DataGrid
-          sx={{ m: 2 }}
-          disableRowSelectionOnClick
-          rows={rows}
-          columns={columns}
-        />
+        <StatusContext.Provider value={statuses}>
+          <DataGrid
+            sx={{ m: 2 }}
+            disableRowSelectionOnClick
+            rows={rows}
+            columns={columns}
+          />
+        </StatusContext.Provider>
       ) : (
         <Loading />
       )}
