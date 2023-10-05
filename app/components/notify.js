@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 
-import Button from "@mui/material/Button";
+import IconButton from "@mui/material/IconButton";
+
+import NotificationsRoundedIcon from "@mui/icons-material/NotificationsRounded";
 
 const handleCheck = () => {
   if (!("Notification" in window) || Notification.permission === "granted") {
@@ -37,13 +39,12 @@ export default function Notify() {
   };
 
   return displayed ? (
-    <Button
-      sx={{ mr: 2 }}
+    <IconButton
       color="inherit"
       variant="outlined"
       onClick={() => handleClick()}
     >
-      Enable Notifications
-    </Button>
+      <NotificationsRoundedIcon />
+    </IconButton>
   ) : undefined;
 }

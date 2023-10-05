@@ -30,7 +30,7 @@ const columns = [
   {
     field: "assignment",
     headerName: "Assignment",
-    flex: 1,
+    flex: 2,
     renderCell: (params) => (
       <Link href={params.row.assignment} target="_blank">
         {params.row.name}
@@ -38,6 +38,15 @@ const columns = [
     ),
     valueGetter: (params) => {
       return params.row.name;
+    },
+  },
+  {
+    field: "submitted",
+    headerName: "Submitted",
+    type: "dateTime",
+    flex: 1,
+    valueGetter: (params) => {
+      return new Date(params.row.submitted);
     },
   },
 ];
@@ -169,6 +178,9 @@ export default function Interface() {
                 course: c?.name,
                 name: s?.assignment?.name,
                 assignment: `https://davistech.instructure.com/courses/${c.id}/gradebook/speed_grader?assignment_id=${s.assignment._id}&student_id=${s.user._id}`,
+                submitted: s?.submittedAt
+                  ? new Date(s?.submittedAt).valueOf()
+                  : 0,
               };
             });
           })

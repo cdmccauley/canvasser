@@ -1,23 +1,47 @@
 "use client";
 
+import { createContext, useEffect, useState } from "react";
+
 import { SessionProvider } from "next-auth/react";
 
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 
-const darkTheme = createTheme({
-  palette: {
-    mode: "dark",
-  },
-});
+export const ThemeContext = createContext();
+
+const themes = {
+  dark: createTheme({
+    palette: {
+      mode: "dark",
+    },
+  }),
+  light: createTheme({
+    palette: {
+      mode: "light",
+    },
+  }),
+};
 
 export default function Provider({ children }) {
-  // for nextauth sessions on client
+  const [theme, setTheme] = useState(themes.dark);
+  const [light, setLight] = useState(false);
+
+  useEffect(() => {
+    light ? setTheme(themes.light) : setTheme(themes.dark);
+  }, [light]);
+
   return (
     <SessionProvider>
-      <ThemeProvider theme={darkTheme}>
+      <ThemeProvider theme={theme}>
         <CssBaseline />
-        {children}
+        <ThemeContext.Provider
+          value={{
+            name: light ? "light" : "dark",
+            switch: () => setLight(!light),
+          }}
+        >
+          {children}
+        </ThemeContext.Provider>
       </ThemeProvider>
     </SessionProvider>
   );
