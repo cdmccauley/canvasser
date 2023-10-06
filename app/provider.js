@@ -8,6 +8,7 @@ import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 
 export const ThemeContext = createContext();
+export const StateContext = createContext();
 
 const themes = {
   dark: createTheme({
@@ -23,6 +24,7 @@ const themes = {
 };
 
 export default function Provider({ children }) {
+  const [state, setState] = useState();
   const [theme, setTheme] = useState(themes.dark);
   const [light, setLight] = useState(false);
 
@@ -40,7 +42,9 @@ export default function Provider({ children }) {
             switch: () => setLight(!light),
           }}
         >
-          {children}
+          <StateContext.Provider value={{ ...state, set: setState }}>
+            {children}
+          </StateContext.Provider>
         </ThemeContext.Provider>
       </ThemeProvider>
     </SessionProvider>

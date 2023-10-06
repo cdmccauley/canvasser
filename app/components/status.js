@@ -21,7 +21,7 @@ export default function Status({ params }) {
 
   // []
   useEffect(() => {
-    if (statuses?.length > 0) {
+    if (Array.isArray(statuses)) {
       const reserve = statuses.find(
         (s) =>
           s?.course &&

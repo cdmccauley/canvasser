@@ -15,6 +15,7 @@ import LightModeRoundedIcon from "@mui/icons-material/LightModeRounded";
 import DarkModeRounded from "@mui/icons-material/DarkModeRounded";
 
 import Notify from "./notify";
+import Courses from "./courses";
 
 // TODO: move mode button into a component similar to notify
 export default function Header() {
@@ -31,7 +32,12 @@ export default function Header() {
           Canvasser
         </Typography>
 
-        {status === "authenticated" ? <Notify /> : undefined}
+        {status === "authenticated" ? (
+          <>
+            <Notify />
+            <Courses />
+          </>
+        ) : undefined}
 
         {status && status !== "loading" ? (
           <IconButton sx={{ mr: 2 }} onClick={() => theme.switch()}>

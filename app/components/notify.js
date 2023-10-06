@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 
 import IconButton from "@mui/material/IconButton";
 
-import NotificationsRoundedIcon from "@mui/icons-material/NotificationsRounded";
+import AddAlertRoundedIcon from '@mui/icons-material/AddAlertRounded';
 
 const handleCheck = () => {
   if (!("Notification" in window) || Notification.permission === "granted") {
@@ -44,7 +44,7 @@ export default function Notify() {
       variant="outlined"
       onClick={() => handleClick()}
     >
-      <NotificationsRoundedIcon />
+      <AddAlertRoundedIcon />
     </IconButton>
   ) : undefined;
 }

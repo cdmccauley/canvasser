@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext } from "react";
+import { useState, useEffect, createContext, useContext } from "react";
 
 import { DataGrid } from "@mui/x-data-grid";
 
@@ -10,6 +10,8 @@ import Status from "./status";
 import { getData, getStatus } from "../lib/fetchers";
 
 export const StatusContext = createContext();
+
+import { StateContext } from "../provider";
 
 // functions
 export const cleanup = (timeout) => {
@@ -59,6 +61,8 @@ export default function Interface() {
   const [rows, setRows] = useState();
   const [statuses, setStatuses] = useState();
 
+  const state = useContext(StateContext);
+
   // []
   useEffect(() => {
     if (!data) {
@@ -96,8 +100,13 @@ export default function Interface() {
       );
 
       // prepare to set submissions
+      const filterForDisabled =
+        Array.isArray(state?.disabled) && state.disabled.length > 0
+          ? data.data.allCourses.filter((c) => !state.disabled.includes(c._id))
+          : data.data.allCourses;
+
       // the graphql query returns courses without submissions
-      const filterForSubmissions = data.data.allCourses.filter(
+      const filterForSubmissions = filterForDisabled.filter(
         (c) => c?.submissionsConnection?.edges?.length > 0
       );
 
@@ -148,6 +157,10 @@ export default function Interface() {
       console.warn("unexpected data", data);
     }
   }, [data]);
+
+  useEffect(() => {
+    if (state?.set && courses) state.set({ ...state, courses: courses });
+  }, [courses]);
 
   // [submissions]
   useEffect(() => {
@@ -200,6 +213,14 @@ export default function Interface() {
       document.title = `Canvasser`;
     }
   }, [rows]);
+
+  // [state.disabled]
+  // TODO: find another way to filter the submissions while retaining it's initial state so we don't lose data before the next refresh
+  useEffect(() => {
+    if (submissions && Array.isArray(state?.disabled)) {
+      setSubmissions(submissions.filter((c) => !state.disabled.includes(c.id)));
+    }
+  }, [state.disabled]);
 
   return (
     <>
