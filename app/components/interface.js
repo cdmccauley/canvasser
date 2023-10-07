@@ -63,6 +63,33 @@ export default function Interface() {
 
   const state = useContext(StateContext);
 
+  const filterSubmissions = () => {
+    const filtered = Array.isArray(state?.disabled)
+      ? submissions.filter((c) => !state.disabled.includes(c.id))
+      : submissions;
+
+    const mapped = filtered
+      .map((c) => {
+        return c.submissions.map((s) => {
+          return {
+            courseId: c?.id,
+            assignmentId: s?.assignment?._id,
+            studentId: s?.user?._id,
+            course: c?.name,
+            name: s?.assignment?.name,
+            assignment: `https://davistech.instructure.com/courses/${c.id}/gradebook/speed_grader?assignment_id=${s.assignment._id}&student_id=${s.user._id}`,
+            submitted: s?.submittedAt ? new Date(s?.submittedAt).valueOf() : 0,
+          };
+        });
+      })
+      .flat() // merge returned sub arrays
+      .map((s, i) => {
+        return { id: i, ...s }; // assign an id field for react
+      });
+
+    setRows(mapped);
+  };
+
   // []
   useEffect(() => {
     if (!data) {
@@ -100,13 +127,8 @@ export default function Interface() {
       );
 
       // prepare to set submissions
-      const filterForDisabled =
-        Array.isArray(state?.disabled) && state.disabled.length > 0
-          ? data.data.allCourses.filter((c) => !state.disabled.includes(c._id))
-          : data.data.allCourses;
-
       // the graphql query returns courses without submissions
-      const filterForSubmissions = filterForDisabled.filter(
+      const filterForSubmissions = data.data.allCourses.filter(
         (c) => c?.submissionsConnection?.edges?.length > 0
       );
 
@@ -164,7 +186,7 @@ export default function Interface() {
 
   // [submissions]
   useEffect(() => {
-    if (submissions) {
+    if (Array.isArray(submissions)) {
       // data for production debugs
       const date = new Date();
       localStorage.setItem(
@@ -178,30 +200,7 @@ export default function Interface() {
       );
 
       getStatus(setStatuses);
-
-      // set row props
-      setRows(
-        submissions
-          .map((c) => {
-            return c.submissions.map((s) => {
-              return {
-                courseId: c?.id,
-                assignmentId: s?.assignment?._id,
-                studentId: s?.user?._id,
-                course: c?.name,
-                name: s?.assignment?.name,
-                assignment: `https://davistech.instructure.com/courses/${c.id}/gradebook/speed_grader?assignment_id=${s.assignment._id}&student_id=${s.user._id}`,
-                submitted: s?.submittedAt
-                  ? new Date(s?.submittedAt).valueOf()
-                  : 0,
-              };
-            });
-          })
-          .flat() // merge returned sub arrays
-          .map((s, i) => {
-            return { id: i, ...s }; // assign an id field for react
-          })
-      );
+      filterSubmissions();
     }
   }, [submissions]);
 
@@ -215,11 +214,8 @@ export default function Interface() {
   }, [rows]);
 
   // [state.disabled]
-  // TODO: find another way to filter the submissions while retaining it's initial state so we don't lose data before the next refresh
   useEffect(() => {
-    if (submissions && Array.isArray(state?.disabled)) {
-      setSubmissions(submissions.filter((c) => !state.disabled.includes(c.id)));
-    }
+    if (Array.isArray(state?.disabled)) filterSubmissions();
   }, [state.disabled]);
 
   return (
