@@ -13,6 +13,8 @@ export const StatusContext = createContext();
 
 import { StateContext } from "../provider";
 
+import { useSession } from "next-auth/react";
+
 // functions
 export const cleanup = (timeout) => {
   if (timeout) clearTimeout(timeout);
@@ -62,6 +64,8 @@ export default function Interface() {
   const [statuses, setStatuses] = useState();
 
   const state = useContext(StateContext);
+
+  const { data: session } = useSession();
 
   const filterSubmissions = () => {
     const filtered = Array.isArray(state?.disabled)
@@ -217,6 +221,55 @@ export default function Interface() {
   useEffect(() => {
     if (Array.isArray(state?.disabled)) filterSubmissions();
   }, [state.disabled]);
+
+  // [statuses]
+  useEffect(() => {
+    if (session?.user?.id && statuses?.length > 0 && submissions?.length > 0) {
+      // start check to clear database
+      const owned = statuses
+        .filter((s) => s.by == session.user.id)
+        .map((s) =>
+          JSON.stringify({
+            // convert to string for comparison
+            course: s.course,
+            assignment: s.assignment,
+            student: s.student,
+          })
+        );
+
+      const applicable = submissions
+        .map((c) => c.submissions) // unpack submissions
+        .flat() // merge
+        .map((s) => {
+          return JSON.stringify({
+            // convert to string for comparison
+            course: s.assignment.courseId,
+            assignment: s.assignment._id,
+            student: s.user._id,
+          });
+        });
+
+      const unapplicable = owned
+        .filter((o) => !applicable.includes(o))
+        .map((o) => JSON.parse(o));
+
+      if (unapplicable?.length > 0) {
+        Promise.all(
+          unapplicable.map((s) =>
+            fetch(
+              `/api/submissions/reserve/${s.course}/${s.assignment}/${s.student}`,
+              { method: "DELETE" }
+            ).catch((e) =>
+              console.error(
+                `/api/submissions/reserve/${s.course}/${s.assignment}/${s.student} error`,
+                e
+              )
+            )
+          )
+        );
+      }
+    }
+  }, [statuses]);
 
   return (
     <>
